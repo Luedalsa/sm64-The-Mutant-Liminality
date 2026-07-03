@@ -237,7 +237,7 @@ class LevelScriptManager {
             triangles += t.second.size();
         }
 
-        auto newTerrain = allocOnPool<Collision>(4 + collisionVertices.size() * 2 + triangles * 2 + 10 * 2 + 30); // TODO do proper calculations
+        auto newTerrain = allocOnPool<Collision>(4 + collisionVertices.size() * 2 + triangles * 2 + collisionTriangles.size() * 2 + 30); // TODO do proper calculations
 
         auto p = newTerrain;
         writeMacro(p, COL_INIT());
