@@ -6,6 +6,7 @@
 #define SM64_PORT_LEVELSCRIPTMANAGER_H
 
 #include "CollisionManager.h"
+#include "DisplayListManager.h"
 #include "LevelPoolManager.h"
 #include "VertexCollection.h"
 #include "TriangleCollection.h"
@@ -56,10 +57,6 @@ extern "C" {
 } // extern "C"
 
 class LevelScriptManager {
-    static std::vector<std::vector<Vtx>> displayVertices;
-    static std::vector<std::vector<std::array<int, 3>>> displayTriangles;
-    static std::vector<const u8*> displayTextures;
-
     static std::vector<std::array<int, 4>> doors; // IS THAT A ROBLOX REFERENCE????
 
     static std::queue<int> trianglesQueue;
@@ -69,84 +66,11 @@ class LevelScriptManager {
         ((*p++ = static_cast<T>(args)), ...); // fold expression, C++17
     }
 
-    static Vtx* buildVertexSegment(const std::vector<Vtx>& vertices) {
-        if (vertices.size() > 32) {
-            throw std::length_error("Vertex segment exceeds maximum size of 32 vertices.");
-        }
-
-        Vtx* vertexSegment = LevelPoolManager::allocOnPool<Vtx>(vertices.size());
-        for (size_t i = 0; i < vertices.size(); i++) {
-            vertexSegment[i] = vertices[i];
-        }
-
-        return vertexSegment;
-    }
-
-    static Gfx* buildDisplayListSegment(const std::vector<Vtx>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
-        const size_t headerCount = 4;
-        const size_t footerCount = 1;
-        const size_t triangleCount = triangles.size();
-
-        Gfx* displayListSegment = LevelPoolManager::allocOnPool<Gfx>(headerCount + triangleCount + footerCount);
-
-        auto p = displayListSegment;
-
-        *p++ = gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
-        *p++ = gsDPLoadSync();
-        *p++ = gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
-        *p++ = gsSPVertex(buildVertexSegment(vertices), vertices.size(), 0);
-
-        for (const auto& triangle : triangles) {
-            *p++ = gsSP1Triangle(triangle[0], triangle[1], triangle[2], 0x0);
-        }
-
-        *p++ = gsSPEndDisplayList();
-
-        return displayListSegment;
-    }
-
-    static Gfx* buildDisplayList() {
-        const size_t headerCount = 64; // TODO please do proper counting
-        const size_t footerCount = 64;
-        const size_t listsCount = displayVertices.size();
-
-        Gfx* displayList = LevelPoolManager::allocOnPool<Gfx>(headerCount + listsCount + footerCount);
-
-        auto p = displayList;
-
-        *p++ = gsDPPipeSync();
-        *p++ = gsDPSetCombineMode(G_CC_MODULATERGB, G_CC_MODULATERGB);
-        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD);
-        *p++ = gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
-
-        *p++ = gsDPTileSync();
-        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, G_TX_RENDERTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, 5, G_TX_NOLOD);
-        *p++ = gsDPSetTileSize(0, 0, 0, (32 - 1) << G_TEXTURE_IMAGE_FRAC, (32 - 1) << G_TEXTURE_IMAGE_FRAC);
-
-        for (int i = 0; i < listsCount; i++) {
-            *p++ = gsSPDisplayList(buildDisplayListSegment(displayVertices[i], displayTriangles[i], displayTextures[i]));
-        }
-
-        /**p++ = gsSPDisplayList(inside_castle_seg7_dl_07028418);
-        *p++ = gsSPDisplayList(inside_castle_seg7_dl_070286C0),;*/
-
-        *p++ = gsDPTileSync();
-        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 16, 0, G_TX_RENDERTILE, 0, G_TX_CLAMP, 5, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, 6, G_TX_NOLOD);
-        *p++ = gsDPSetTileSize(0, 0, 0, (64 - 1) << G_TEXTURE_IMAGE_FRAC, (32 - 1) << G_TEXTURE_IMAGE_FRAC);
-
-        *p++ = gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF);
-        *p++ = gsDPPipeSync();
-        *p++ = gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE);
-        *p++ = gsSPEndDisplayList();
-
-        return displayList;
-    }
-
     static GeoLayout* buildGeoBranch() {
         const GeoLayout geoBranch[] = {
             GEO_NODE_START(),
             GEO_OPEN_NODE(),
-               GEO_DISPLAY_LIST(LAYER_OPAQUE, buildDisplayList()),
+               GEO_DISPLAY_LIST(LAYER_OPAQUE, DisplayListManager::buildDisplayList()),
                GEO_DISPLAY_LIST(LAYER_ALPHA, inside_castle_seg7_dl_07029578),
                GEO_DISPLAY_LIST(LAYER_OPAQUE, inside_castle_seg7_dl_0702A650),
                GEO_DISPLAY_LIST(LAYER_TRANSPARENT_DECAL, inside_castle_seg7_dl_0702AA10),
@@ -415,12 +339,6 @@ public:
 
     static void addTriangleToBuildQueue(int t) {
         trianglesQueue.push(t);
-    }
-
-    static void addDisplayListSegment(const std::vector<Vtx>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
-        displayVertices.push_back(vertices);
-        displayTriangles.push_back(triangles);
-        displayTextures.push_back(texture);
     }
 
     static void spawnSpecialDoor(int x, int y, int z, int yaw) {

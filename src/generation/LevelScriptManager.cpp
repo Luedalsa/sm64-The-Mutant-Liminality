@@ -7,9 +7,6 @@
 #include "AbstractVertex.h"
 #include "TriangleCollection.h"
 
-std::vector<std::vector<Vtx>> LevelScriptManager::displayVertices;
-std::vector<std::vector<std::array<int, 3>>> LevelScriptManager::displayTriangles;
-std::vector<const u8*> LevelScriptManager::displayTextures;
 std::vector<std::array<int, 4>> LevelScriptManager::doors;
 std::queue<int> LevelScriptManager::trianglesQueue;
 

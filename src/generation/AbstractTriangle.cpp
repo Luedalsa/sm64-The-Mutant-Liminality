@@ -100,7 +100,7 @@ void AbstractTriangle::build() {
     CollisionManager::addCollisionTriangle(v1, v2, v3, SURFACE_BURNING);
     */
 
-    LevelScriptManager::addDisplayListSegment(
+    DisplayListManager::addDisplayListSegment(
         {
                     {vertexa->position[0], vertexa->position[1], vertexa->position[2], 0, 0, 0, 127, 0, 0, 255},
                     {vertexb->position[0], vertexb->position[1], vertexb->position[2], 0, 0, 32, 127, 0, 0, 255},
