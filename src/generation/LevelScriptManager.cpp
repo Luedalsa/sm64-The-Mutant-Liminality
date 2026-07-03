@@ -8,8 +8,6 @@
 #include "TriangleCollection.h"
 
 std::vector<void*> LevelScriptManager::poolPointers;
-std::vector<int> LevelScriptManager::collisionVertices;
-std::unordered_map<int, std::vector<int>> LevelScriptManager::collisionTriangles;
 std::vector<std::vector<Vtx>> LevelScriptManager::displayVertices;
 std::vector<std::vector<std::array<int, 3>>> LevelScriptManager::displayTriangles;
 std::vector<const u8*> LevelScriptManager::displayTextures;

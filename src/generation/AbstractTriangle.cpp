@@ -85,19 +85,19 @@ void AbstractTriangle::build() {
     int vv1 = vertexa->getCollisionVertex();
     int vv2 = vertexb->getCollisionVertex();
     int vv3 = vertexc->getCollisionVertex();
-    LevelScriptManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
+    CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
 
     /*
-    int v1 = LevelScriptManager::addCollisionVertex(vertexa->position[0] + 100 * normal[0],
+    int v1 = CollisionManager::addCollisionVertex(vertexa->position[0] + 100 * normal[0],
                                                     vertexa->position[1] + 100 * normal[2],
                                                     vertexa->position[2] + 100 * normal[2]);
-    int v2 = LevelScriptManager::addCollisionVertex(vertexb->position[0] + 100 * normal[0],
+    int v2 = CollisionManager::addCollisionVertex(vertexb->position[0] + 100 * normal[0],
                                                     vertexb->position[1] + 100 * normal[1],
                                                     vertexb->position[2] + 100 * normal[2]);
-    int v3 = LevelScriptManager::addCollisionVertex(vertexc->position[0] + 100 * normal[0],
+    int v3 = CollisionManager::addCollisionVertex(vertexc->position[0] + 100 * normal[0],
                                                     vertexc->position[1] + 100 * normal[1],
                                                     vertexc->position[2] + 100 * normal[2]);
-    LevelScriptManager::addCollisionTriangle(v1, v2, v3, SURFACE_BURNING);
+    CollisionManager::addCollisionTriangle(v1, v2, v3, SURFACE_BURNING);
     */
 
     LevelScriptManager::addDisplayListSegment(

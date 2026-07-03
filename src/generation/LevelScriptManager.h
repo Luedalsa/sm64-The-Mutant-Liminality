@@ -5,6 +5,7 @@
 #ifndef SM64_PORT_LEVELSCRIPTMANAGER_H
 #define SM64_PORT_LEVELSCRIPTMANAGER_H
 
+#include "CollisionManager.h"
 #include "VertexCollection.h"
 #include "TriangleCollection.h"
 #include "textures.h"
@@ -55,9 +56,6 @@ extern "C" {
 
 class LevelScriptManager {
     static std::vector<void*> poolPointers;
-
-    static std::vector<int> collisionVertices;
-    static std::unordered_map<int, std::vector<int>> collisionTriangles;
 
     static std::vector<std::vector<Vtx>> displayVertices;
     static std::vector<std::vector<std::array<int, 3>>> displayTriangles;
@@ -234,6 +232,8 @@ class LevelScriptManager {
         addCollisionTriangle(v0, v1, v2);
         addCollisionTriangle(v2, v1, v3);
 */
+        auto collisionVertices = CollisionManager::getCollisionVertices();
+        auto collisionTriangles = CollisionManager::getCollisionTriangles();
 
         auto triangles = 0;
         for (auto& t : collisionTriangles) {
@@ -429,20 +429,6 @@ class LevelScriptManager {
 public:
     static void setup() {
         "Hi";
-    }
-
-    static int addCollisionVertex(int x, int y, int z) {
-        int s = collisionVertices.size()/3;
-        collisionVertices.push_back(x);
-        collisionVertices.push_back(y);
-        collisionVertices.push_back(z);
-        return s;
-    }
-
-    static void addCollisionTriangle(int v1, int v2, int v3, int surface = SURFACE_DEFAULT) {
-        collisionTriangles[surface].push_back(v1);
-        collisionTriangles[surface].push_back(v2);
-        collisionTriangles[surface].push_back(v3);
     }
 
     static void addTriangleToBuildQueue(int t) {
