@@ -6,6 +6,7 @@
 #define SM64_PORT_LEVELSCRIPTMANAGER_H
 
 #include "CollisionManager.h"
+#include "LevelPoolManager.h"
 #include "VertexCollection.h"
 #include "TriangleCollection.h"
 #include "textures.h"
@@ -55,8 +56,6 @@ extern "C" {
 } // extern "C"
 
 class LevelScriptManager {
-    static std::vector<void*> poolPointers;
-
     static std::vector<std::vector<Vtx>> displayVertices;
     static std::vector<std::vector<std::array<int, 3>>> displayTriangles;
     static std::vector<const u8*> displayTextures;
@@ -70,26 +69,12 @@ class LevelScriptManager {
         ((*p++ = static_cast<T>(args)), ...); // fold expression, C++17
     }
 
-    static void freeLevelPool() {
-        for (void* ptr : poolPointers) {
-            free(ptr);
-        }
-        poolPointers.clear();
-    }
-
-    template <typename T>
-    static T* allocOnPool(size_t count = 1) {
-        T* ptr = static_cast<T*>(malloc(sizeof(T) * count));
-        poolPointers.push_back(ptr);
-        return ptr;
-    }
-
     static Vtx* buildVertexSegment(const std::vector<Vtx>& vertices) {
         if (vertices.size() > 32) {
             throw std::length_error("Vertex segment exceeds maximum size of 32 vertices.");
         }
 
-        Vtx* vertexSegment = allocOnPool<Vtx>(vertices.size());
+        Vtx* vertexSegment = LevelPoolManager::allocOnPool<Vtx>(vertices.size());
         for (size_t i = 0; i < vertices.size(); i++) {
             vertexSegment[i] = vertices[i];
         }
@@ -102,7 +87,7 @@ class LevelScriptManager {
         const size_t footerCount = 1;
         const size_t triangleCount = triangles.size();
 
-        Gfx* displayListSegment = allocOnPool<Gfx>(headerCount + triangleCount + footerCount);
+        Gfx* displayListSegment = LevelPoolManager::allocOnPool<Gfx>(headerCount + triangleCount + footerCount);
 
         auto p = displayListSegment;
 
@@ -125,7 +110,7 @@ class LevelScriptManager {
         const size_t footerCount = 64;
         const size_t listsCount = displayVertices.size();
 
-        Gfx* displayList = allocOnPool<Gfx>(headerCount + listsCount + footerCount);
+        Gfx* displayList = LevelPoolManager::allocOnPool<Gfx>(headerCount + listsCount + footerCount);
 
         auto p = displayList;
 
@@ -171,7 +156,7 @@ class LevelScriptManager {
             GEO_RETURN(),
         };
 
-        auto newGeoBranch = allocOnPool<GeoLayout>(sizeof(geoBranch) / sizeof(GeoLayout));
+        auto newGeoBranch = LevelPoolManager::allocOnPool<GeoLayout>(sizeof(geoBranch) / sizeof(GeoLayout));
         std::memcpy(newGeoBranch, geoBranch, sizeof(geoBranch));
 
         return newGeoBranch;
@@ -207,7 +192,7 @@ class LevelScriptManager {
            GEO_END(),
         };
 
-        auto newGeoLayout = allocOnPool<GeoLayout>(sizeof(geoLayout) / sizeof(GeoLayout));
+        auto newGeoLayout = LevelPoolManager::allocOnPool<GeoLayout>(sizeof(geoLayout) / sizeof(GeoLayout));
         std::memcpy(newGeoLayout, geoLayout, sizeof(geoLayout));
 
         return newGeoLayout;
@@ -237,7 +222,7 @@ class LevelScriptManager {
             triangles += t.second.size();
         }
 
-        auto newTerrain = allocOnPool<Collision>(4 + collisionVertices.size() * 2 + triangles * 2 + collisionTriangles.size() * 2 + 30); // TODO do proper calculations
+        auto newTerrain = LevelPoolManager::allocOnPool<Collision>(4 + collisionVertices.size() * 2 + triangles * 2 + collisionTriangles.size() * 2 + 30); // TODO do proper calculations
 
         auto p = newTerrain;
         writeMacro(p, COL_INIT());
@@ -280,14 +265,14 @@ class LevelScriptManager {
     }
 
     static char* buildRooms() {
-        auto newRooms = allocOnPool<char>(1);
+        auto newRooms = LevelPoolManager::allocOnPool<char>(1);
         newRooms[0] = 1;
 
         return newRooms;
     }
 
     static LevelScript* buildObjects() {
-        auto newObjects = allocOnPool<LevelScript>(20); // TODO do proper counting
+        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(20); // TODO do proper counting
 
         auto p = newObjects;
 
