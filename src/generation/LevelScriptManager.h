@@ -1,0 +1,466 @@
+//
+// Created by Luis Alvarez on 30/06/2026.
+//
+
+#ifndef SM64_PORT_LEVELSCRIPTMANAGER_H
+#define SM64_PORT_LEVELSCRIPTMANAGER_H
+
+#include "VertexCollection.h"
+#include "TriangleCollection.h"
+#include "textures.h"
+#include "actors/group15.h"
+
+#include <cstdlib>
+#include <cstring>
+
+#include <vector>
+#include <queue>
+#include <stdexcept>
+
+// SM64: The Mutant Liminality. Procedural Geometry Generation.
+// I think this is a good name
+
+extern "C" {
+#include <ultra64.h>
+
+#include "types.h"
+
+#include "model_ids.h"
+#include "seq_ids.h"
+#include "dialog_ids.h"
+
+#include "game/level_update.h"
+
+#include "levels/scripts.h"
+
+#include "actors/common1.h"
+
+#include "behavior_data.h"
+#include "../game/camera.h"
+#include "geo_commands.h"
+#include "../game/geo_misc.h"
+
+#include "level_commands.h"
+#include "../game/level_geo.h"
+#include "level_misc_macros.h"
+#include "sm64.h"
+#include "special_preset_names.h"
+#include "levels/castle_inside/header.h"
+#include "surface_terrains.h"
+#include "actors/common0.h"
+#include "actors/group10.h"
+#include "actors/group9.h"
+
+} // extern "C"
+
+class LevelScriptManager {
+    static std::vector<void*> poolPointers;
+
+    static std::vector<int> collisionVertices;
+    static std::unordered_map<int, std::vector<int>> collisionTriangles;
+
+    static std::vector<std::vector<Vtx>> displayVertices;
+    static std::vector<std::vector<std::array<int, 3>>> displayTriangles;
+    static std::vector<const u8*> displayTextures;
+
+    static std::vector<std::array<int, 4>> doors; // IS THAT A ROBLOX REFERENCE????
+
+    static std::queue<int> trianglesQueue;
+
+    template <typename T, typename... Args>
+    static void writeMacro(T*& p, Args... args) {
+        ((*p++ = static_cast<T>(args)), ...); // fold expression, C++17
+    }
+
+    static void freeLevelPool() {
+        for (void* ptr : poolPointers) {
+            free(ptr);
+        }
+        poolPointers.clear();
+    }
+
+    template <typename T>
+    static T* allocOnPool(size_t count = 1) {
+        T* ptr = static_cast<T*>(malloc(sizeof(T) * count));
+        poolPointers.push_back(ptr);
+        return ptr;
+    }
+
+    // TODO Do not use this please, just allocate your memory and do your stuff there. Soon to be removed
+    template <typename T>
+    static T* copyToPool(const T* data, size_t count = 1) {
+        T* ptr = static_cast<T*>(malloc(sizeof(T) * count));
+        if (ptr) std::memcpy(ptr, data, sizeof(T) * count); // FIXME ENGINE RANDOMLY CRASHES WHEN COPYING! (approximately 5% of the time)
+        poolPointers.push_back(ptr);
+        return ptr;
+    }
+
+    static Vtx* buildVertexSegment(const std::vector<Vtx>& vertices) {
+        if (vertices.size() > 32) {
+            throw std::length_error("Vertex segment exceeds maximum size of 32 vertices.");
+        }
+
+        Vtx* vertexSegment = allocOnPool<Vtx>(vertices.size());
+        for (size_t i = 0; i < vertices.size(); i++) {
+            vertexSegment[i] = vertices[i];
+        }
+
+        return vertexSegment;
+    }
+
+    static Gfx* buildDisplayListSegment(const std::vector<Vtx>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
+        const size_t headerCount = 4;
+        const size_t footerCount = 1;
+        const size_t triangleCount = triangles.size();
+
+        Gfx* displayListSegment = allocOnPool<Gfx>(headerCount + triangleCount + footerCount);
+
+        auto p = displayListSegment;
+
+        *p++ = gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
+        *p++ = gsDPLoadSync();
+        *p++ = gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+        *p++ = gsSPVertex(buildVertexSegment(vertices), vertices.size(), 0);
+
+        for (const auto& triangle : triangles) {
+            *p++ = gsSP1Triangle(triangle[0], triangle[1], triangle[2], 0x0);
+        }
+
+        *p++ = gsSPEndDisplayList();
+
+        return displayListSegment;
+    }
+
+    static Gfx* buildDisplayList() {
+        const size_t headerCount = 64; // TODO please do proper counting
+        const size_t footerCount = 64;
+        const size_t listsCount = displayVertices.size();
+
+        Gfx* displayList = allocOnPool<Gfx>(headerCount + listsCount + footerCount);
+
+        auto p = displayList;
+
+        *p++ = gsDPPipeSync();
+        *p++ = gsDPSetCombineMode(G_CC_MODULATERGB, G_CC_MODULATERGB);
+        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD);
+        *p++ = gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+
+        *p++ = gsDPTileSync();
+        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, G_TX_RENDERTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, 5, G_TX_NOLOD);
+        *p++ = gsDPSetTileSize(0, 0, 0, (32 - 1) << G_TEXTURE_IMAGE_FRAC, (32 - 1) << G_TEXTURE_IMAGE_FRAC);
+
+        for (int i = 0; i < listsCount; i++) {
+            *p++ = gsSPDisplayList(buildDisplayListSegment(displayVertices[i], displayTriangles[i], displayTextures[i]));
+        }
+
+        /**p++ = gsSPDisplayList(inside_castle_seg7_dl_07028418);
+        *p++ = gsSPDisplayList(inside_castle_seg7_dl_070286C0),;*/
+
+        *p++ = gsDPTileSync();
+        *p++ = gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 16, 0, G_TX_RENDERTILE, 0, G_TX_CLAMP, 5, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, 6, G_TX_NOLOD);
+        *p++ = gsDPSetTileSize(0, 0, 0, (64 - 1) << G_TEXTURE_IMAGE_FRAC, (32 - 1) << G_TEXTURE_IMAGE_FRAC);
+
+        *p++ = gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF);
+        *p++ = gsDPPipeSync();
+        *p++ = gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE);
+        *p++ = gsSPEndDisplayList();
+
+        return displayList;
+    }
+
+    static GeoLayout* buildGeoBranch() {
+        const GeoLayout geoBranch[] = {
+            GEO_NODE_START(),
+            GEO_OPEN_NODE(),
+               GEO_DISPLAY_LIST(LAYER_OPAQUE, buildDisplayList()),
+               GEO_DISPLAY_LIST(LAYER_ALPHA, inside_castle_seg7_dl_07029578),
+               GEO_DISPLAY_LIST(LAYER_OPAQUE, inside_castle_seg7_dl_0702A650),
+               GEO_DISPLAY_LIST(LAYER_TRANSPARENT_DECAL, inside_castle_seg7_dl_0702AA10),
+               GEO_DISPLAY_LIST(LAYER_ALPHA, inside_castle_seg7_dl_0702AB20),
+               GEO_ASM(0, geo_exec_inside_castle_light),
+            GEO_CLOSE_NODE(),
+            GEO_RETURN(),
+        };
+
+        return (GeoLayout*)copyToPool(&geoBranch, sizeof(geoBranch) / sizeof(GeoLayout));
+    }
+
+    static GeoLayout* buildGeoLayout() {
+        const GeoLayout geoLayout[] = {
+           GEO_NODE_SCREEN_AREA(10, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2, SCREEN_HEIGHT/2),
+           GEO_OPEN_NODE(),
+              GEO_ZBUFFER(0),
+              GEO_OPEN_NODE(),
+                 GEO_NODE_ORTHO(100),
+                 GEO_OPEN_NODE(),
+                    GEO_BACKGROUND_COLOR(0x0001),
+                 GEO_CLOSE_NODE(),
+              GEO_CLOSE_NODE(),
+              GEO_ZBUFFER(1),
+              GEO_OPEN_NODE(),
+                 GEO_CAMERA_FRUSTUM_WITH_FUNC(64, 50, 7000, geo_camera_fov),
+                 GEO_OPEN_NODE(),
+                    GEO_CAMERA(13, 0, 2000, 6000, 0, 0, 0, geo_camera_main),
+                    GEO_OPEN_NODE(),
+                       GEO_SWITCH_CASE(1, geo_switch_area),
+                       GEO_OPEN_NODE(),
+                          GEO_BRANCH(1, buildGeoBranch()),
+                       GEO_CLOSE_NODE(),
+                       GEO_RENDER_OBJ(),
+                       GEO_ASM(0, geo_envfx_main),
+                    GEO_CLOSE_NODE(),
+                 GEO_CLOSE_NODE(),
+              GEO_CLOSE_NODE(),
+           GEO_CLOSE_NODE(),
+           GEO_END(),
+        };
+
+        return (GeoLayout*)copyToPool(&geoLayout, sizeof(geoLayout) / sizeof(GeoLayout));
+    }
+
+    static Collision* buildTerrain() {
+        //return (short*)&inside_castle_seg7_area_1_collision[0]; // Default collision for reference
+
+        // Security floor
+/*
+        collisionVertices.clear();
+        for (auto& t : collisionTriangles) {
+            t.second.clear();
+        };
+        int v0 = addCollisionVertex(3000, 0, 3000);
+        int v1 = addCollisionVertex(3000, 0, -3000);
+        int v2 = addCollisionVertex(-3000, 0, 3000);
+        int v3 = addCollisionVertex(-3000, 0, -3000);
+        addCollisionTriangle(v0, v1, v2);
+        addCollisionTriangle(v2, v1, v3);
+*/
+
+        auto triangles = 0;
+        for (auto& t : collisionTriangles) {
+            triangles += t.second.size();
+        }
+
+        auto newTerrain = allocOnPool<Collision>(4 + collisionVertices.size() * 2 + triangles * 2 + 10 * 2 + 30); // TODO do proper calculations
+
+        auto p = newTerrain;
+        writeMacro(p, COL_INIT());
+        writeMacro(p, COL_VERTEX_INIT((short int) (collisionVertices.size() / 3)));
+
+        for (auto v : collisionVertices) {
+            *p = static_cast<short int>(v); // FIXME DATA LOSS
+            p++;
+        }
+
+        for (auto& t : collisionTriangles) {
+            if (!t.second.empty()) {
+                *p = t.first;
+                p++;
+                *p = t.second.size()/3;
+                p++;
+                for (auto t : t.second) {
+                    *p = t;
+                    p++;
+                }
+            }
+        }
+
+        writeMacro(p, COL_TRI_STOP());
+        writeMacro(p, COL_SPECIAL_INIT(8 + doors.size()));
+        for (auto& d : doors) {
+            writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_wooden_door, /*pos*/ d[0], d[1], d[2], /*yaw*/ d[3]));
+        }
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW_AND_PARAM(/*preset*/ special_castle_door_warp,  /*pos*/ -1100,    0,  2202, /*yaw*/   0, /*behParam2*/ 0));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW_AND_PARAM(/*preset*/ special_castle_door_warp,  /*pos*/ -946,     0,  2202, /*yaw*/ 128, /*behParam2*/ 1));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW_AND_PARAM(/*preset*/ special_wooden_door_warp,  /*pos*/ -1023, -101, -5170, /*yaw*/   0, /*behParam2*/ 2));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_0stars_door,       /*pos*/ -3122,  205,  -793, /*yaw*/  64));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_1star_door,        /*pos*/   256,    0, -1074, /*yaw*/   0));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_1star_door,        /*pos*/   644,  614, -1476, /*yaw*/ 224));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_3star_door,        /*pos*/  1075,  205,  -229, /*yaw*/ 192));
+        writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_3star_door,        /*pos*/ -2303,    0, -1074, /*yaw*/   0));
+        writeMacro(p, COL_END());
+
+        return newTerrain;
+    }
+
+    static char* buildRooms() {
+        auto newRooms = (char*)malloc(1);
+        newRooms[0] = 1;
+
+        return newRooms;
+    }
+
+    static LevelScript* buildObjects() {
+        auto newObjects = allocOnPool<LevelScript>(20); // TODO do proper counting
+
+        auto p = newObjects;
+
+        writeMacro(p, OBJECT(/*model*/ MODEL_TOAD,       /*pos*/ -1671,    0,  1313, /*angle*/ 0,  83, 0, /*behParam*/ DIALOG_133 << 24, /*beh*/ bhvToadMessage));
+        writeMacro(p, RETURN());
+        return newObjects;
+    }
+
+    static LevelScript* buildLevelScript() {
+        LevelScript scriptData[] = {
+            INIT_LEVEL(),
+            //LOAD_MIO0(        /*seg*/ 0x07, _castle_inside_segment_7SegmentRomStart, _castle_inside_segment_7SegmentRomEnd),
+            //LOAD_MIO0_TEXTURE(/*seg*/ 0x09, _inside_mio0SegmentRomStart, _inside_mio0SegmentRomEnd),
+            //LOAD_MIO0(        /*seg*/ 0x06, _group15_mio0SegmentRomStart, _group15_mio0SegmentRomEnd),
+            //LOAD_RAW(         /*seg*/ 0x0D, _group15_geoSegmentRomStart,  _group15_geoSegmentRomEnd),
+            ALLOC_LEVEL_POOL(),
+            MARIO(/*model*/ MODEL_MARIO, /*behParam*/ 0x00000001, /*beh*/ bhvMario),
+            LOAD_MODEL_FROM_GEO(MODEL_MIPS,                      mips_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_BOO_CASTLE,                boo_castle_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_LAKITU,                    lakitu_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_TOAD,                      toad_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_BOWSER_TRAP,        castle_geo_000F18),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_WATER_LEVEL_PILLAR, castle_geo_001940),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_CLOCK_MINUTE_HAND,  castle_geo_001530),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_CLOCK_HOUR_HAND,    castle_geo_001548),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_CLOCK_PENDULUM,     castle_geo_001518),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_CASTLE_DOOR,        castle_door_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_WOODEN_DOOR,        wooden_door_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_METAL_DOOR,         metal_door_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_CASTLE_DOOR_UNUSED, castle_door_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_WOODEN_DOOR_UNUSED, wooden_door_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_DOOR_0_STARS,       castle_door_0_star_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_DOOR_1_STAR,        castle_door_1_star_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_DOOR_3_STARS,       castle_door_3_stars_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_KEY_DOOR,           peach_geo_000098),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_30_STARS, castle_geo_000F00),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_8_STARS,  castle_geo_000F00),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_50_STARS, castle_geo_000F00),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_70_STARS, castle_geo_000F00),
+
+            AREA(/*index*/ 1, buildGeoLayout()),
+                JUMP_LINK(buildObjects()),
+                WARP_NODE(/*id*/ 0x00, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x00, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x01, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x01, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x02, /*destLevel*/ LEVEL_CASTLE_COURTYARD, /*destArea*/ 0x01, /*destNode*/ 0x01, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_8_STARS, /*pos*/ -2706,   0, -1409, /*angle*/ 0,  0, 0, /*behParam*/ 0x08000000, /*beh*/ bhvStarDoor),
+                OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_8_STARS, /*pos*/ -2598,   0, -1517, /*angle*/ 0, 180, 0, /*behParam*/ 0x08000000, /*beh*/ bhvStarDoor),
+                OBJECT(/*model*/ MODEL_CASTLE_KEY_DOOR,          /*pos*/ -1100,   0, -1074, /*angle*/ 0,   0, 0, /*behParam*/ 0x01030000, /*beh*/ bhvDoorWarp),
+                OBJECT(/*model*/ MODEL_CASTLE_KEY_DOOR,          /*pos*/  -946,   0, -1074, /*angle*/ 0, 180, 0, /*behParam*/ 0x01040000, /*beh*/ bhvDoorWarp),
+                OBJECT(/*model*/ MODEL_CASTLE_KEY_DOOR,          /*pos*/ -1100, 0,   922, /*angle*/ 0,   0, 0, /*behParam*/ 0x02050000, /*beh*/ bhvDoorWarp),
+                OBJECT(/*model*/ MODEL_CASTLE_KEY_DOOR,          /*pos*/  -946, 0,   922, /*angle*/ 0, 180, 0, /*behParam*/ 0x02060000, /*beh*/ bhvDoorWarp),
+                WARP_NODE(/*id*/ 0x03, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x02, /*destNode*/ 0x00, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x04, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x02, /*destNode*/ 0x01, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x05, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x03, /*destNode*/ 0x00, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x06, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x03, /*destNode*/ 0x01, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x00, /*destLevel*/ LEVEL_BOB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x01, /*destLevel*/ LEVEL_BOB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x02, /*destLevel*/ LEVEL_BOB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x03, /*destLevel*/ LEVEL_CCM, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x04, /*destLevel*/ LEVEL_CCM, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x05, /*destLevel*/ LEVEL_CCM, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x06, /*destLevel*/ LEVEL_WF, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x07, /*destLevel*/ LEVEL_WF, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x08, /*destLevel*/ LEVEL_WF, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x09, /*destLevel*/ LEVEL_JRB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x0A, /*destLevel*/ LEVEL_JRB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                PAINTING_WARP_NODE(/*id*/ 0x0B, /*destLevel*/ LEVEL_JRB, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  2013,  768, -2014, /*angle*/ 0,    0, 0, /*behParam*/ 0x000A0000, /*beh*/ bhvWarp),
+                WARP_NODE(/*id*/ 0x0A, /*destLevel*/ LEVEL_PSS, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -5513,  512, -4324, /*angle*/ 0,    0, 0, /*behParam*/ 0x300B0000, /*beh*/ bhvWarp),
+                WARP_NODE(/*id*/ 0x0B, /*destLevel*/ LEVEL_BITDW, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  1963,  819,  1280, /*angle*/ 0,    0, 0, /*behParam*/ 0x050C0000, /*beh*/ bhvWarp),
+                WARP_NODE(/*id*/ 0x0C, /*destLevel*/ LEVEL_SA, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0xF2, /*destLevel*/ LEVEL_TOTWC, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  512,  -650, /*angle*/ 0,    0, 0, /*behParam*/ 0x001E0000, /*beh*/ bhvInstantActiveWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  -50,   717, /*angle*/ 0,  180, 0, /*behParam*/ 0x001F0000, /*beh*/ bhvInstantActiveWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  900,   717, /*angle*/ 0,  180, 0, /*behParam*/ 0x00200000, /*beh*/ bhvAirborneWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  900,   717, /*angle*/ 0,  180, 0, /*behParam*/ 0x00210000, /*beh*/ bhvAirborneDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  900,   717, /*angle*/ 0,  180, 0, /*behParam*/ 0x00220000, /*beh*/ bhvHardAirKnockBackWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  900,   717, /*angle*/ 0,  180, 0, /*behParam*/ 0x00230000, /*beh*/ bhvDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -5513,  512, -4324, /*angle*/ 0, -135, 0, /*behParam*/ 0x00240000, /*beh*/ bhvLaunchStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -5513,  512, -4324, /*angle*/ 0, -135, 0, /*behParam*/ 0x00250000, /*beh*/ bhvLaunchDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -1024,  900,   717, /*angle*/ 0,    0, 0, /*behParam*/ 0x00260000, /*beh*/ bhvAirborneStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  2816, 1200,  -256, /*angle*/ 0,   90, 0, /*behParam*/ 0x00270000, /*beh*/ bhvAirborneStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  2816, 1200,  -256, /*angle*/ 0,  270, 0, /*behParam*/ 0x00280000, /*beh*/ bhvDeathWarp),
+                WARP_NODE(/*id*/ 0x1E, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x1E, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x1F, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x1F, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x20, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x20, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x21, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x21, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x22, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x22, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x23, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x23, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x24, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x24, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x25, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x25, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x26, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x26, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x27, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x27, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x28, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x28, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -5422, 717,  -461, /*angle*/ 0, 270, 0, /*behParam*/ 0x00320000, /*beh*/ bhvPaintingStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -2304,   0, -4552, /*angle*/ 0, 180, 0, /*behParam*/ 0x00330000, /*beh*/ bhvPaintingStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/   256, 102, -4706, /*angle*/ 0, 180, 0, /*behParam*/ 0x00340000, /*beh*/ bhvPaintingStarCollectWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  4501, 717,  -230, /*angle*/ 0,  90, 0, /*behParam*/ 0x00350000, /*beh*/ bhvPaintingStarCollectWarp),
+                WARP_NODE(/*id*/ 0x32, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x32, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x33, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x33, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x34, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x34, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x35, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x35, /*flags*/ WARP_NO_CHECKPOINT),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -5422, 717,  -461, /*angle*/ 0, 270, 0, /*behParam*/ 0x00640000, /*beh*/ bhvPaintingDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/ -2304,   0, -4552, /*angle*/ 0, 180, 0, /*behParam*/ 0x00650000, /*beh*/ bhvPaintingDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/   256, 102, -4706, /*angle*/ 0, 180, 0, /*behParam*/ 0x00660000, /*beh*/ bhvPaintingDeathWarp),
+                OBJECT(/*model*/ MODEL_NONE, /*pos*/  4501, 717,  -230, /*angle*/ 0,  90, 0, /*behParam*/ 0x00670000, /*beh*/ bhvPaintingDeathWarp),
+                WARP_NODE(/*id*/ 0x64, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x64, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x65, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x65, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x66, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x66, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0x67, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x01, /*destNode*/ 0x67, /*flags*/ WARP_NO_CHECKPOINT),
+                WARP_NODE(/*id*/ 0xF1, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x03, /*flags*/ WARP_NO_CHECKPOINT),
+                TERRAIN(/*terrainData*/ buildTerrain()),
+                ROOMS(/*surfaceRooms*/ buildRooms()),
+                MACRO_OBJECTS(/*objList*/ inside_castle_seg7_area_1_macro_objs),
+                SET_BACKGROUND_MUSIC(/*settingsPreset*/ 0x0001, /*seq*/ SEQ_LEVEL_KOOPA_ROAD),
+                TERRAIN_TYPE(/*terrainType*/ TERRAIN_STONE),
+            END_AREA(),
+
+            FREE_LEVEL_POOL(),
+            MARIO_POS(/*area*/ 1, /*yaw*/ 180, /*pos*/ 0, 2000, 0),
+            CALL(/*arg*/ 0, /*func*/ lvl_init_or_update),
+            CALL_LOOP(/*arg*/ 1, /*func*/ lvl_init_or_update),
+            CLEAR_LEVEL(),
+            SLEEP_BEFORE_EXIT(/*frames*/ 1),
+            //CALL(/*arg*/ 0, /*func*/ freeLevelPool), FIXME ENGINE CRASHES RIGHT AFTER FREEING MEMORY
+            RETURN()
+        };
+
+        auto newLevelScript = (LevelScript*)malloc(sizeof(scriptData));
+        std::memcpy(newLevelScript, scriptData, sizeof(scriptData));
+
+        return newLevelScript;
+    }
+public:
+    static void setup() {
+        "Hi";
+    }
+
+    static int addCollisionVertex(int x, int y, int z) {
+        int s = collisionVertices.size()/3;
+        collisionVertices.push_back(x);
+        collisionVertices.push_back(y);
+        collisionVertices.push_back(z);
+        return s;
+    }
+
+    static void addCollisionTriangle(int v1, int v2, int v3, int surface = SURFACE_DEFAULT) {
+        collisionTriangles[surface].push_back(v1);
+        collisionTriangles[surface].push_back(v2);
+        collisionTriangles[surface].push_back(v3);
+    }
+
+    static void addTriangleToBuildQueue(int t) {
+        trianglesQueue.push(t);
+    }
+
+    static void addDisplayListSegment(const std::vector<Vtx>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
+        displayVertices.push_back(vertices);
+        displayTriangles.push_back(triangles);
+        displayTextures.push_back(texture);
+    }
+
+    static void spawnSpecialDoor(int x, int y, int z, int yaw) {
+        doors.push_back({x, y, z, yaw});
+    }
+
+    static LevelScript* buildLevel();
+
+};
+
+#endif // SM64_PORT_LEVELSCRIPTMANAGER_H
