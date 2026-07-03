@@ -280,7 +280,7 @@ class LevelScriptManager {
     }
 
     static char* buildRooms() {
-        auto newRooms = (char*)malloc(1);
+        auto newRooms = allocOnPool<char>(1);
         newRooms[0] = 1;
 
         return newRooms;
