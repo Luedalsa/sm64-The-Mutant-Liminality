@@ -84,15 +84,6 @@ class LevelScriptManager {
         return ptr;
     }
 
-    // TODO Do not use this please, just allocate your memory and do your stuff there. Soon to be removed
-    template <typename T>
-    static T* copyToPool(const T* data, size_t count = 1) {
-        T* ptr = static_cast<T*>(malloc(sizeof(T) * count));
-        if (ptr) std::memcpy(ptr, data, sizeof(T) * count); // FIXME ENGINE RANDOMLY CRASHES WHEN COPYING! (approximately 5% of the time)
-        poolPointers.push_back(ptr);
-        return ptr;
-    }
-
     static Vtx* buildVertexSegment(const std::vector<Vtx>& vertices) {
         if (vertices.size() > 32) {
             throw std::length_error("Vertex segment exceeds maximum size of 32 vertices.");
@@ -180,7 +171,10 @@ class LevelScriptManager {
             GEO_RETURN(),
         };
 
-        return (GeoLayout*)copyToPool(&geoBranch, sizeof(geoBranch) / sizeof(GeoLayout));
+        auto newGeoBranch = allocOnPool<GeoLayout>(sizeof(geoBranch) / sizeof(GeoLayout));
+        std::memcpy(newGeoBranch, geoBranch, sizeof(geoBranch));
+
+        return newGeoBranch;
     }
 
     static GeoLayout* buildGeoLayout() {
@@ -213,7 +207,10 @@ class LevelScriptManager {
            GEO_END(),
         };
 
-        return (GeoLayout*)copyToPool(&geoLayout, sizeof(geoLayout) / sizeof(GeoLayout));
+        auto newGeoLayout = allocOnPool<GeoLayout>(sizeof(geoLayout) / sizeof(GeoLayout));
+        std::memcpy(newGeoLayout, geoLayout, sizeof(geoLayout));
+
+        return newGeoLayout;
     }
 
     static Collision* buildTerrain() {
