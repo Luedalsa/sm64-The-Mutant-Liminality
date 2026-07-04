@@ -34,9 +34,8 @@ public:
 
 class DebugAgent : public Agent {
 public:
-    DebugAgent() : Agent(AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0)) {};
+    DebugAgent() : Agent(AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0)) {energy = 3;};
     ~DebugAgent() override = default;
-    int energy = 3;
     void grow() override {
         energy--;
         // --- VÉRTICES ---
@@ -79,8 +78,8 @@ public:
 
         //DebugAgent agent;
 
-        if (energy > 0) {/*
-            this->grow(); // TODO do not make DFS*/
+        if (energy > 0) {
+            this->grow();
         }
     };
 };
