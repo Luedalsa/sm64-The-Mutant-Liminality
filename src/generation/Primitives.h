@@ -7,8 +7,8 @@
 
 #include <types.h>
 
-struct Ray {
-    Vec3i origin;
+struct Transform {
+    Vec3i position;
     Vec3f direction;
 };
 
