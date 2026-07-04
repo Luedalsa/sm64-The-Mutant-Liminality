@@ -19,7 +19,12 @@ public:
 
     static void start() {
         DebugAgent ok;
-        ok.grow();
+        agentQueue.push(&ok);
+        while (!agentQueue.empty()) {
+            auto agent = agentQueue.top();
+            agent->grow();
+            agentQueue.pop();
+        }
     }
 
     static void createBabyAgent(Agent& baby) {

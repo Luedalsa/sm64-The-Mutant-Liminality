@@ -7,6 +7,7 @@
 #include "VertexCollection.h"
 #include "TriangleCollection.h"
 #include "AbstractVertex.h"
+#include "Primitives.h"
 
 extern "C" {
 #include "engine/math_util.h"
@@ -24,7 +25,7 @@ extern "C" {
 
 class Agent {
 public:
-    Agent(AbstractVertex v1, AbstractVertex v2, AbstractVertex v3, AbstractVertex v4) {
+    Agent(Transform transform) {
     }
     virtual ~Agent() = default;
     int energy = 0;
@@ -34,7 +35,7 @@ public:
 
 class DebugAgent : public Agent {
 public:
-    DebugAgent() : Agent(AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0), AbstractVertex(0, 0, 0)) {energy = 3;};
+    DebugAgent() : Agent({{0, 0, 0}, {0, 0, 0}}) {energy = 3;};
     ~DebugAgent() override = default;
     void grow() override {
         energy--;
