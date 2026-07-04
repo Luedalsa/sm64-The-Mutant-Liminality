@@ -35,7 +35,7 @@ public:
 
 class DebugAgent : public Agent {
 public:
-    DebugAgent() : Agent({{0, 0, 0}, {0, 0, 0}}) {energy = 3;};
+    DebugAgent() : Agent(Transform()) {energy = 3;};
     ~DebugAgent() override = default;
     void grow() override {
         energy--;
