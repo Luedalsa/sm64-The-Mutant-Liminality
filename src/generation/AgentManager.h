@@ -7,7 +7,11 @@
 
 #include "Agent.h"
 
+#include <queue>
+
 class AgentManager {
+    static std::priority_queue<Agent*> agentQueue;
+
 public:
     static void setup() {
         "Hi";
@@ -16,6 +20,10 @@ public:
     static void start() {
         DebugAgent ok;
         ok.grow();
+    }
+
+    static void createBabyAgent(Agent& baby) {
+        agentQueue.push(&baby);
     }
 };
 
