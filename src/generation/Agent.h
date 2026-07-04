@@ -76,11 +76,6 @@ public:
         TriangleCollection::createTriangle(v2, v1, v8);
         TriangleCollection::createTriangle(v2, v8, v5);
 
-        //DebugAgent agent;
-
-        if (energy > 0) {
-            this->grow();
-        }
     };
 };
 
