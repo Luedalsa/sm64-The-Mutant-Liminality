@@ -9,5 +9,3 @@
 
 std::vector<int> CollisionManager::collisionVertices;
 std::unordered_map<int, std::vector<int>> CollisionManager::collisionTriangles;
-
-#include "CollisionManager.h"
