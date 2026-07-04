@@ -112,7 +112,7 @@ void AbstractTriangle::build() {
                 fire_09002000
     );
 
-    LevelScriptManager::spawnSpecialDoor(
+    ActorSpawnerManager::spawnSpecialDoor(
         (vertexa->position[0] + vertexb->position[0] + vertexc->position[0]) / 3,
         (vertexa->position[1] + vertexb->position[1] + vertexc->position[1]) / 3,
         (vertexa->position[2] + vertexb->position[2] + vertexc->position[2]) / 3,

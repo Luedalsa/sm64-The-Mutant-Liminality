@@ -5,6 +5,7 @@
 #ifndef SM64_PORT_LEVELSCRIPTMANAGER_H
 #define SM64_PORT_LEVELSCRIPTMANAGER_H
 
+#include "ActorSpawnerManager.h"
 #include "CollisionManager.h"
 #include "DisplayListManager.h"
 #include "LevelPoolManager.h"
@@ -57,8 +58,6 @@ extern "C" {
 } // extern "C"
 
 class LevelScriptManager {
-    static std::vector<std::array<int, 4>> doors; // IS THAT A ROBLOX REFERENCE????
-
     static std::queue<int> trianglesQueue;
 
     template <typename T, typename... Args>
@@ -171,6 +170,7 @@ class LevelScriptManager {
         }
 
         writeMacro(p, COL_TRI_STOP());
+        auto doors = ActorSpawnerManager::getSpecialDoors();
         writeMacro(p, COL_SPECIAL_INIT(8 + doors.size()));
         for (auto& d : doors) {
             writeMacro(p, SPECIAL_OBJECT_WITH_YAW(/*preset*/ special_wooden_door, /*pos*/ d[0], d[1], d[2], /*yaw*/ d[3]));
@@ -339,10 +339,6 @@ public:
 
     static void addTriangleToBuildQueue(int t) {
         trianglesQueue.push(t);
-    }
-
-    static void spawnSpecialDoor(int x, int y, int z, int yaw) {
-        doors.push_back({x, y, z, yaw});
     }
 
     static LevelScript* buildLevel();

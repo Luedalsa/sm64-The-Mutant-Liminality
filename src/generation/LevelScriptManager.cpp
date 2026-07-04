@@ -7,7 +7,6 @@
 #include "AbstractVertex.h"
 #include "TriangleCollection.h"
 
-std::vector<std::array<int, 4>> LevelScriptManager::doors;
 std::queue<int> LevelScriptManager::trianglesQueue;
 
 /**
