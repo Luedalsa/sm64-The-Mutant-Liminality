@@ -15,8 +15,16 @@ public:
         doors.push_back({x, y, z, yaw});
     }
 
+    static void spawnGoomba(int x, int y, int z) {
+        goombas.push_back({x, y, z});
+    }
+
     static const std::vector<std::array<int, 4>>& getSpecialDoors() {
         return doors;
+    }
+
+    static const std::vector<std::array<int, 3>>& getGoombas() {
+        return goombas;
     }
 };
 

@@ -196,11 +196,15 @@ class LevelScriptManager {
     }
 
     static LevelScript* buildObjects() {
-        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(20); // TODO do proper counting
+        auto goombas = ActorSpawnerManager::getGoombas();
+        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(6 + goombas.size() * 6 + 1);
 
         auto p = newObjects;
 
         writeMacro(p, OBJECT(/*model*/ MODEL_TOAD,       /*pos*/ -1671,    0,  1313, /*angle*/ 0,  83, 0, /*behParam*/ DIALOG_133 << 24, /*beh*/ bhvToadMessage));
+        for (auto& o : goombas) {
+            writeMacro(p, OBJECT(/*model*/ MODEL_GOOMBA,           /*pos*/  o[0], o[1],  o[2], /*angle*/ 0,   0, 0, /*behParam*/ 0x00010000, /*beh*/ bhvGoomba));
+        }
         writeMacro(p, RETURN());
         return newObjects;
     }
@@ -236,6 +240,7 @@ class LevelScriptManager {
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_8_STARS,  castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_50_STARS, castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_70_STARS, castle_geo_000F00),
+            LOAD_MODEL_FROM_GEO(MODEL_GOOMBA,                      goomba_geo),
 
             AREA(/*index*/ 1, buildGeoLayout()),
                 JUMP_LINK(buildObjects()),

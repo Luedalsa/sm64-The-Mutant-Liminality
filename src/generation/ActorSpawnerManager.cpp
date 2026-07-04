@@ -5,3 +5,4 @@
 #include "ActorSpawnerManager.h"
 
 std::vector<std::array<int, 4>> ActorSpawnerManager::doors;
+std::vector<std::array<int, 3>> ActorSpawnerManager::goombas;
