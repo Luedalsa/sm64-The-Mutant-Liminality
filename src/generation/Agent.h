@@ -41,16 +41,16 @@ public:
         energy--;
         // --- VÉRTICES ---
         // Base (Y = 0)
-        int v4 = VertexCollection::createVertex(-3000, 0, -3000); // Frente, Izquierda
-        int v2 = VertexCollection::createVertex(3000, 0, -3000);  // Frente, Derecha
-        int v3 = VertexCollection::createVertex(-3000, 0, 3000);  // Atrás, Izquierda
-        int v1 = VertexCollection::createVertex(3000, 0, 3000);   // Atrás, Derecha
+        int v4 = VertexCollection::createVertex({-3000, 0, -3000}); // Frente, Izquierda
+        int v2 = VertexCollection::createVertex({3000, 0, -3000});  // Frente, Derecha
+        int v3 = VertexCollection::createVertex({-3000, 0, 3000});  // Atrás, Izquierda
+        int v1 = VertexCollection::createVertex({3000, 0, 3000});   // Atrás, Derecha
 
         // Techo (Y = 3000)
-        int v6 = VertexCollection::createVertex(-3000, 3000, -3000); // Frente, Izquierda (Asignado)
-        int v5 = VertexCollection::createVertex(3000, 3000, -3000);  // Frente, Derecha
-        int v7 = VertexCollection::createVertex(-3000, 3000, 3000);  // Atrás, Izquierda (Asignado)
-        int v8 = VertexCollection::createVertex(3000, 3000, 3000);   // Atrás, Derecha (Asignado)
+        int v6 = VertexCollection::createVertex({-3000, 3000, -3000}); // Frente, Izquierda (Asignado)
+        int v5 = VertexCollection::createVertex({3000, 3000, -3000});  // Frente, Derecha
+        int v7 = VertexCollection::createVertex({-3000, 3000, 3000});  // Atrás, Izquierda (Asignado)
+        int v8 = VertexCollection::createVertex({3000, 3000, 3000});   // Atrás, Derecha (Asignado)
 
         // --- TRIÁNGULOS ---
         // Cara Inferior (Base)

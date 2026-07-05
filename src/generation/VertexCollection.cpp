@@ -20,9 +20,9 @@ void VertexCollection::forEachVertexIntersectingBox(
 }
 
 
-int VertexCollection::createVertex(int x, int y, int z) {
+int VertexCollection::createVertex(Vector3 v) {
     // Aquí el compilador ya sabe exactamente cuánto mide y cómo se construye
-    auto vtx = AbstractVertex({(float)x, (float)y, (float)z});
+    auto vtx = AbstractVertex(v);
     vertices.push_back(vtx);
     return vertices.size()-1;
 }

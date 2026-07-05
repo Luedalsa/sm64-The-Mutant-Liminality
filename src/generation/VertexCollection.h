@@ -4,6 +4,7 @@
 
 #ifndef SM64_PORT_VERTEXCOLLECTION_H
 #define SM64_PORT_VERTEXCOLLECTION_H
+#include "Primitives.h"
 
 extern "C" {
     #include "types.h"
@@ -26,7 +27,7 @@ public:
     );
 
     // ¡Solo ponemos las firmas!
-    static int createVertex(int x, int y, int z);
+    static int createVertex(Vector3 v);
     static int getVertexCount();
     static AbstractVertex* getVertex(int v);
 };
