@@ -7,7 +7,7 @@
 
 int AbstractVertex::getCollisionVertex() {
     if (collisionVertex == -1) {
-        collisionVertex = CollisionManager::addCollisionVertex(position.x, position.y, position.z);
+        collisionVertex = CollisionManager::addCollisionVertex(position);
     }
     return collisionVertex;
 }

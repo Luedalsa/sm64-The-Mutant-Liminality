@@ -15,9 +15,9 @@ class CollisionManager {
     static std::unordered_map<int, std::vector<int>> collisionTriangles;
 public:
 
-    static int addCollisionVertex(int x, int y, int z) {
+    static int addCollisionVertex(Vector3 v) {
         int s = collisionVertices.size();
-        collisionVertices.emplace_back((float)x, (float)y, (float)z);
+        collisionVertices.emplace_back(v);
         return s;
     }
 
