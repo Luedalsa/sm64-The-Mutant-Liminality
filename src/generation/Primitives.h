@@ -30,7 +30,7 @@ public:
     }
 
     Axis& operator=(float n) {
-        if (v > INT16_MAX || v < INT16_MIN) {
+        if (n > INT16_MAX || n < INT16_MIN) {
             std::cerr << "Axis component must be in the range of int16_t. Value will be truncated on getter. " << std::endl;
         }
         v = n;
