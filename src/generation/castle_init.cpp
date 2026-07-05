@@ -57,10 +57,7 @@ extern "C" LevelScript level_castle_inside_entry[] = {
     JUMP_LINK(mutantCastleLevelScript),
     EXIT(),
 };
-extern "C" const u8 dialog_text_DIALOG_133[] = {
-    ASCII_TO_DIALOG('o'),
-    0xFF
-};
+extern "C" u8 dialog_text_DIALOG_133[5000] = { 0xFF };
 
 s32 castle_init(s16 arg, s32 unused) {
     CASTLE_SEED = 0;
