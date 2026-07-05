@@ -24,8 +24,10 @@ extern "C" {
 #include <vector>
 
 class Agent {
+    SurfaceTransform birthPosition;
 public:
     Agent(SurfaceTransform transform) {
+        birthPosition = transform;
     }
     virtual ~Agent() = default;
     int energy = 0;
