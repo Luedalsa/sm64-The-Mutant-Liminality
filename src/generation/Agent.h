@@ -26,9 +26,7 @@ extern "C" {
 class Agent {
     SurfaceTransform birthPosition;
 public:
-    Agent(SurfaceTransform transform) {
-        birthPosition = transform;
-    }
+    explicit Agent(const SurfaceTransform& transform) : birthPosition(transform) {}
     virtual ~Agent() = default;
     int energy = 0;
 
