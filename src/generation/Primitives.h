@@ -77,6 +77,76 @@ public:
     }
 };
 
+template <typename T>
+struct Vector3 {
+    Axis<float> x, y, z;
+
+    Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
+    Vector3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+
+    static Vector3 zero() { return Vector3(0, 0, 0); }
+
+    Vector3 operator+(const Vector3& other) const {
+        return Vector3(x + other.x, y + other.y, z + other.z);
+    }
+
+    Vector3 operator-(const Vector3& other) const {
+        return Vector3(x - other.x, y - other.y, z - other.z);
+    }
+
+    Vector3 operator*(T scalar) const {
+        return Vector3(x * scalar, y * scalar, z * scalar);
+    }
+
+    Vector3 operator/(T scalar) const {
+        return Vector3(x / scalar, y / scalar, z / scalar);
+    }
+
+    Vector3& operator+=(const Vector3& other) { return *this = *this + other; }
+    Vector3& operator-=(const Vector3& other) { return *this = *this - other; }
+    Vector3& operator*=(T scalar) { return *this = *this * scalar; }
+    Vector3& operator/=(T scalar) { return *this = *this / scalar; }
+
+    bool operator==(const Vector3& other) const {
+        return x == other.x && y == other.y && z == other.z;
+    }
+    bool operator!=(const Vector3& other) const { return !(*this == other); }
+
+    T dot(const Vector3& other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    Vector3 cross(const Vector3& other) const {
+        auto vector = Vector3(
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x
+        );
+        return vector;
+    }
+
+    double length() const {
+        return std::sqrt(static_cast<double>(x * x + y * y + z * z));
+    }
+
+    Vector3 normalized() const {
+        double len = length();
+        if (len == 0.0) {
+            return Vector3::zero();
+        }
+        auto vector = Vector3(
+            static_cast<T>(x / len),
+            static_cast<T>(y / len),
+            static_cast<T>(z / len)
+        );
+        return vector;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Vector3& vec) {
+        return os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
+    }
+};
+
 struct SurfaceTransform {
     int triangle = -1;
     float u = 0.5;
