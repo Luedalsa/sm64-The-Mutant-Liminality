@@ -18,7 +18,10 @@ public:
     }
 
     static void start() {
-        DebugAgent ok;
+        TriangleCollection::createTriangle(VertexCollection::createVertex(1, 0, 1),
+                                           VertexCollection::createVertex(1, 0, -1),
+                                           VertexCollection::createVertex(-1, 0, -1));
+        DebugAgent ok(SurfaceTransform{0,0.5,0.5,0,1, 0});
         agentQueue.push(&ok);
         while (!agentQueue.empty()) {
             auto agent = agentQueue.top();

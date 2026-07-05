@@ -25,7 +25,7 @@ extern "C" {
 
 class Agent {
 public:
-    Agent(Transform transform) {
+    Agent(SurfaceTransform transform) {
     }
     virtual ~Agent() = default;
     int energy = 0;
@@ -35,7 +35,7 @@ public:
 
 class DebugAgent : public Agent {
 public:
-    DebugAgent() : Agent(Transform()) {energy = 3;};
+    DebugAgent(const SurfaceTransform &transform) : Agent(transform) {energy = 3;};
     ~DebugAgent() override = default;
     void grow() override {
         energy--;
