@@ -7,7 +7,7 @@
 
 #include <types.h>
 
-struct Transform {
+struct SurfaceTransform {
     int triangle = -1;
     float u = 0.5;
     float v = 0.5;
