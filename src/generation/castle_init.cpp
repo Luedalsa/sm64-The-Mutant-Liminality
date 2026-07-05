@@ -9,6 +9,7 @@
 #include "levels/castle_inside/header.h"
 #include "AgentManager.h"
 #include "LevelScriptManager.h"
+#include "game/ingame_menu.h"
 
 inline int CASTLE_SEED = 0xDEADBEEF;
 
@@ -55,6 +56,10 @@ extern "C" LevelScript level_castle_inside_entry[] = {
     CALL(/*arg*/ 0, /*func*/ castle_init ),
     JUMP_LINK(mutantCastleLevelScript),
     EXIT(),
+};
+extern "C" const u8 dialog_text_DIALOG_133[] = {
+    ASCII_TO_DIALOG('o'),
+    0xFF
 };
 
 s32 castle_init(s16 arg, s32 unused) {

@@ -11,6 +11,7 @@ extern "C" {
 #include "game/moving_texture.h"
 
 extern LevelScript level_castle_inside_entry[];
+extern const u8 dialog_text_DIALOG_133[];
 
 #endif // SM64_PORT_CASTLE_INIT_H
 
