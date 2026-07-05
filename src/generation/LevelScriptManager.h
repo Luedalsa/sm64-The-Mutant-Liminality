@@ -149,10 +149,14 @@ class LevelScriptManager {
 
         auto p = newTerrain;
         writeMacro(p, COL_INIT());
-        writeMacro(p, COL_VERTEX_INIT((short int) (collisionVertices.size() / 3)));
+        writeMacro(p, COL_VERTEX_INIT(static_cast<short int>(collisionVertices.size())));
 
         for (auto v : collisionVertices) {
-            *p = static_cast<short int>(v); // FIXME DATA LOSS
+            *p = v.x;
+            p++;
+            *p = v.y;
+            p++;
+            *p = v.z;
             p++;
         }
 

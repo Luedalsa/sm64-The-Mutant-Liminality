@@ -4,21 +4,20 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_COLLISIONMANAGER_H
 #define SM64_THE_MUTANT_LIMINALITY_COLLISIONMANAGER_H
+#include "Primitives.h"
 #include "surface_terrains.h"
 
 #include <unordered_map>
 #include <vector>
 
 class CollisionManager {
-    static std::vector<int> collisionVertices;
+    static std::vector<Vector3> collisionVertices;
     static std::unordered_map<int, std::vector<int>> collisionTriangles;
 public:
 
     static int addCollisionVertex(int x, int y, int z) {
         int s = collisionVertices.size()/3;
-        collisionVertices.push_back(x);
-        collisionVertices.push_back(y);
-        collisionVertices.push_back(z);
+        collisionVertices.emplace_back((float)x, (float)y, (float)z);
         return s;
     }
 
@@ -28,7 +27,7 @@ public:
         collisionTriangles[surface].push_back(v3);
     }
 
-    static const std::vector<int>& getCollisionVertices() {
+    static const std::vector<Vector3>& getCollisionVertices() {
         return collisionVertices;
     }
 

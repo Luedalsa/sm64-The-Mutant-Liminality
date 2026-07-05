@@ -7,5 +7,7 @@
 
 #include "CollisionManager.h"
 
-std::vector<int> CollisionManager::collisionVertices;
+#include "Primitives.h"
+
+std::vector<Vector3> CollisionManager::collisionVertices;
 std::unordered_map<int, std::vector<int>> CollisionManager::collisionTriangles;
