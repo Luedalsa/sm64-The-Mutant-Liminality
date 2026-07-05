@@ -15,7 +15,7 @@ class AbstractVertex {
     Vector3 position;
     bool active = true;
     std::vector<int> connectingTriangles;
-    AbstractVertex(float x, float y, float z) : position{x, y, z} {};
+    AbstractVertex(Vector3 v) : position(v) {};
 
     int getCollisionVertex();;
 };

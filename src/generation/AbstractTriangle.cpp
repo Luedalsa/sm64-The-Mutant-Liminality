@@ -42,13 +42,13 @@ inline float normalLen(const Vec3f n) {
 inline AbstractVertex* lerpVertex(const AbstractVertex* a,
                                   const AbstractVertex* b,
                                   float t)
-{
+{/*
     auto* v = new AbstractVertex(
     a->position[0] + t * (b->position[0] - a->position[0]),
     a->position[1] + t * (b->position[1] - a->position[1]),
     a->position[2] + t * (b->position[2] - a->position[2])
         );
-    return v;
+    return v;*/
 }
 
 } // namespace anónimo
@@ -99,7 +99,7 @@ void AbstractTriangle::build() {
                                                     vertexc->position[2] + 100 * normal[2]);
     CollisionManager::addCollisionTriangle(v1, v2, v3, SURFACE_BURNING);
     */
-
+/*
     DisplayListManager::addDisplayListSegment(
         {
                     {vertexa->position[0], vertexa->position[1], vertexa->position[2], 0, 0, 0, 127, 0, 0, 255},
@@ -116,7 +116,7 @@ void AbstractTriangle::build() {
         (vertexa->position[0] + vertexb->position[0] + vertexc->position[0]) / 3,
         (vertexa->position[1] + vertexb->position[1] + vertexc->position[1]) / 3,
         (vertexa->position[2] + vertexb->position[2] + vertexc->position[2]) / 3
-    );
+    );*/
 
     for (int i = 0; i < 3; ++i) {
         for (auto t : VertexCollection::getVertex(vertices[i])->connectingTriangles) {
