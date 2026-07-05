@@ -16,7 +16,7 @@ class CollisionManager {
 public:
 
     static int addCollisionVertex(int x, int y, int z) {
-        int s = collisionVertices.size()/3;
+        int s = collisionVertices.size();
         collisionVertices.emplace_back((float)x, (float)y, (float)z);
         return s;
     }
