@@ -14,12 +14,14 @@ template <typename T>
 struct Axis {
 private:
     float v = 0.0f; // Always float. Template is for operators.
-public:
+
+    friend class Vector3;
     Axis(T nv) : v(nv) {
         if (nv > INT16_MAX || nv < INT16_MIN) {
             std::cerr << "Axis component must be in the range of int16_t. Value will be truncated on getter. " << std::endl;
         }
     }
+public:
 
     operator T() const { return v; }
     operator short int() const {
@@ -77,12 +79,11 @@ public:
     }
 };
 
-template <typename T>
 struct Vector3 {
     Axis<float> x, y, z;
 
     Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
-    Vector3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+    Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
 
     static Vector3 zero() { return Vector3(0, 0, 0); }
 
@@ -94,25 +95,25 @@ struct Vector3 {
         return Vector3(x - other.x, y - other.y, z - other.z);
     }
 
-    Vector3 operator*(T scalar) const {
+    Vector3 operator*(float scalar) const {
         return Vector3(x * scalar, y * scalar, z * scalar);
     }
 
-    Vector3 operator/(T scalar) const {
+    Vector3 operator/(float scalar) const {
         return Vector3(x / scalar, y / scalar, z / scalar);
     }
 
     Vector3& operator+=(const Vector3& other) { return *this = *this + other; }
     Vector3& operator-=(const Vector3& other) { return *this = *this - other; }
-    Vector3& operator*=(T scalar) { return *this = *this * scalar; }
-    Vector3& operator/=(T scalar) { return *this = *this / scalar; }
+    Vector3& operator*=(float scalar) { return *this = *this * scalar; }
+    Vector3& operator/=(float scalar) { return *this = *this / scalar; }
 
     bool operator==(const Vector3& other) const {
         return x == other.x && y == other.y && z == other.z;
     }
     bool operator!=(const Vector3& other) const { return !(*this == other); }
 
-    T dot(const Vector3& other) const {
+    float dot(const Vector3& other) const {
         return x * other.x + y * other.y + z * other.z;
     }
 
@@ -135,9 +136,9 @@ struct Vector3 {
             return Vector3::zero();
         }
         auto vector = Vector3(
-            static_cast<T>(x / len),
-            static_cast<T>(y / len),
-            static_cast<T>(z / len)
+            static_cast<float>(x / len),
+            static_cast<float>(y / len),
+            static_cast<float>(z / len)
         );
         return vector;
     }
