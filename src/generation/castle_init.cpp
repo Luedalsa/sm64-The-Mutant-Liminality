@@ -57,10 +57,26 @@ extern "C" LevelScript level_castle_inside_entry[] = {
     JUMP_LINK(mutantCastleLevelScript),
     EXIT(),
 };
-extern "C" u8 dialog_text_DIALOG_133[5000] = { 0xFF };
+extern "C" u8 dialog_text_DIALOG_133[5000] = { DIALOG_CHAR_TERMINATOR };
 
 s32 castle_init(s16 arg, s32 unused) {
     CASTLE_SEED = 0;
+
+    std::string s = "Hello, Mario... \n The castle keeps \n changing? What are you \n talking about? it \n always looked like this \n [GENERATD BY SEED" + std::to_string(CASTLE_SEED) + "]\n";
+
+    for (int i = 0; i < s.length() && i < 5000; ++i) {
+        dialog_text_DIALOG_133[i] = ASCII_TO_DIALOG(s[i]);
+        if (s[i] == '\n') {
+            dialog_text_DIALOG_133[i] = DIALOG_CHAR_NEWLINE;
+        } else if (s[i] == ' ') {
+            dialog_text_DIALOG_133[i] = DIALOG_CHAR_SPACE;
+        } else if (s[i] == '.') {
+            dialog_text_DIALOG_133[i] = DIALOG_CHAR_PERIOD;
+        } else if (s[i] == ',') {
+            dialog_text_DIALOG_133[i] = DIALOG_CHAR_COMMA;
+        }
+    }
+    dialog_text_DIALOG_133[s.length()] = DIALOG_CHAR_TERMINATOR;
 
     AgentManager::setup();
     LevelScriptManager::setup();
