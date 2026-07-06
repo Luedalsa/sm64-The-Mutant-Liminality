@@ -5,6 +5,7 @@
 #ifndef SM64_PORT_TRIANGLECOLLECTION_H
 #define SM64_PORT_TRIANGLECOLLECTION_H
 #include "AbstractTriangle.h"
+#include <memory>
 
 class AbstractTriangle;
 
@@ -16,7 +17,7 @@ extern "C" {
 #include <functional>
 
 class TriangleCollection {
-    static std::deque<AbstractTriangle> triangles;
+    static std::deque<std::unique_ptr<AbstractTriangle>> triangles;
 
 public:
     static void forEachTriangleIntersectingBox(
@@ -24,17 +25,13 @@ public:
         const Vec3f boxEnd,
         std::function<void(const AbstractTriangle&)> callback
     );
+    template <class T = AbstractTriangle, class... Args> static int createTriangle(Args &&...args);
 
-    static int createTriangle(int v1, int v2, int v3);
-/*
-    static AbstractTriangle* createTriangle(AbstractTriangle* tri) {
-        auto newtri = new AbstractTriangle(tri->getVertex(0), tri->getVertex(1), tri->getVertex(2));
-        triangles.push_back(newtri);
-        return newtri;
-    }*/
     static AbstractTriangle* getTriangle(int t) {
-        return &triangles[t];
+        return triangles[t].get();
     };
 };
+
+#include "TriangleCollection.tpp"
 
 #endif // SM64_PORT_TRIANGLECOLLECTION_H

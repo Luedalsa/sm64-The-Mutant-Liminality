@@ -54,28 +54,30 @@ public:
 
         // --- TRIÁNGULOS ---
         // Cara Inferior (Base)
-        TriangleCollection::createTriangle(v1, v2, v3);
-        TriangleCollection::createTriangle(v3, v2, v4);
+        /*
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
 
         // Cara Frontal (Z = -3000)
-        TriangleCollection::createTriangle(v4, v2, v5);
-        TriangleCollection::createTriangle(v4, v5, v6);
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
 
         // Cara Superior (Techo)
-        TriangleCollection::createTriangle(v6, v5, v8);
-        TriangleCollection::createTriangle(v6, v8, v7);
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
 
         // Cara Trasera (Z = 3000)
-        TriangleCollection::createTriangle(v1, v3, v7);
-        TriangleCollection::createTriangle(v1, v7, v8);
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
 
         // Cara Izquierda (X = -3000)
-        TriangleCollection::createTriangle(v3, v4, v6);
-        TriangleCollection::createTriangle(v3, v6, v7);
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
 
         // Cara Derecha (X = 3000)
-        TriangleCollection::createTriangle(v2, v1, v8);
-        TriangleCollection::createTriangle(v2, v8, v5);
+        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(TODO);
+        */
 
     };
 };
