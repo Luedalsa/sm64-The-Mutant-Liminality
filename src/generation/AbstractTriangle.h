@@ -77,4 +77,12 @@ public:
     std::vector<AbstractTriangle*> clip(const AbstractTriangle& cutter) const;
 };
 
+class CheckerboardFloorTriangle : public AbstractTriangle {
+    protected:
+    CheckerboardFloorTriangle(int v1, int v2, int v3) : AbstractTriangle(v1, v2, v3) {
+        active = true;
+    }
+    friend class TriangleCollection;
+};
+
 #endif // SM64_PORT_ABSTRACTTRIANGLE_H
