@@ -32,6 +32,7 @@ class AbstractTriangle {
     Vec3f normal{};
     bool built = false;
 
+protected:
     // ── Constructor ──────────────────────────────────────────────────────────
     AbstractTriangle(int v1,
                      int v2,
