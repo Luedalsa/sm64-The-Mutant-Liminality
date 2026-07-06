@@ -43,7 +43,7 @@ protected:
 public:
     bool active = false;
 
-    void build();
+    virtual void build();
 
     bool isBuilt() const { return built; }
 
@@ -83,6 +83,8 @@ class CheckerboardFloorTriangle : public AbstractTriangle {
         active = true;
     }
     friend class TriangleCollection;
+public:
+    void build() override;
 };
 
 #endif // SM64_PORT_ABSTRACTTRIANGLE_H
