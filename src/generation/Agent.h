@@ -21,16 +21,46 @@ extern "C" {
 #undef max
 #endif
 
-#include <vector>
+#include <cmath>
 
 class Agent {
     SurfaceTransform birthPosition;
+
+    // Base ortonormal local: up = normal de la superficie, right/forward
+    // derivados por producto cruz para no depender de un único eje "mundo".
+    /*
+    void getLocalBasis(Vector3& right, Vector3& up, Vector3& forward) const {
+        up = birthPosition.normalDirection.normalized();
+
+        // Vector de referencia arbitrario, evitando que sea paralelo a 'up'
+        Vector3 reference = (std::fabs(up.y) < 0.99f) ? Vector3(0, 1, 0) : Vector3(1, 0, 0);
+
+        right   = up.cross(reference).normalized();
+        forward = right.cross(up).normalized();
+    }
+    */
+
 public:
     explicit Agent(const SurfaceTransform& transform) : birthPosition(transform) {}
     virtual ~Agent() = default;
     int energy = 0;
 
-  virtual void grow() = 0;
+    virtual void grow() = 0;
+
+    // Convierte una posición local (relativa al agente) en un vértice mundial
+    // y lo registra en VertexCollection. Convención: y local = eje normal (up),
+    // x local = right, z local = forward.
+    int createLocalVertex(Vector3& v) {
+        Vector3 right, up, forward;
+        //getLocalBasis(right, up, forward);
+
+        Vector3 worldPos = birthPosition.getUVPosition()
+                          + right   * v.x
+                          + up      * v.y
+                          + forward * v.z;
+
+        return VertexCollection::createVertex(worldPos);
+    }
 };
 
 class DebugAgent : public Agent {
@@ -54,30 +84,30 @@ public:
 
         // --- TRIÁNGULOS ---
         // Cara Inferior (Base)
-        /*
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
+
+        TriangleCollection::createTriangle(v1, v2, v3);
+        TriangleCollection::createTriangle(v3, v2, v4);
 
         // Cara Frontal (Z = -3000)
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(v4, v2, v5);
+        TriangleCollection::createTriangle(v4, v5, v6);
 
         // Cara Superior (Techo)
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(v6, v5, v8);
+        TriangleCollection::createTriangle(v6, v8, v7);
 
         // Cara Trasera (Z = 3000)
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(v1, v3, v7);
+        TriangleCollection::createTriangle(v1, v7, v8);
 
         // Cara Izquierda (X = -3000)
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
+        TriangleCollection::createTriangle(v3, v4, v6);
+        TriangleCollection::createTriangle(v3, v6, v7);
 
         // Cara Derecha (X = 3000)
-        TriangleCollection::createTriangle(TODO);
-        TriangleCollection::createTriangle(TODO);
-        */
+        TriangleCollection::createTriangle(v2, v1, v8);
+        TriangleCollection::createTriangle(v2, v8, v5);
+
 
     };
 };
