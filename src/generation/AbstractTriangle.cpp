@@ -62,12 +62,12 @@ AbstractTriangle::AbstractTriangle(int v1,
     vertices[1] = v2;
     vertices[2] = v3;
 
-    auto& a = VertexCollection::getVertex(v1)->position;
-    auto& b = VertexCollection::getVertex(v2)->position;
-    auto& c = VertexCollection::getVertex(v3)->position;
+    const auto & a = VertexCollection::getVertex(v1)->position;
+    const auto & b = VertexCollection::getVertex(v2)->position;
+    const auto & c = VertexCollection::getVertex(v3)->position;
 
-    Vector3 u = b - a;
-    Vector3 v = c - a;
+    const Vector3 u = b - a;
+    const Vector3 v = c - a;
 
     normal = u.cross(v).normalized();
 }
