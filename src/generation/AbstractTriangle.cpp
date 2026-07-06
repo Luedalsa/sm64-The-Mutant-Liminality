@@ -79,14 +79,6 @@ void AbstractTriangle::build() {
     if (built) return;
     built = true;
 
-    AbstractVertex* vertexa = VertexCollection::getVertex(vertices[0]);
-    AbstractVertex* vertexb = VertexCollection::getVertex(vertices[1]);
-    AbstractVertex* vertexc = VertexCollection::getVertex(vertices[2]);
-    int vv1 = vertexa->getCollisionVertex();
-    int vv2 = vertexb->getCollisionVertex();
-    int vv3 = vertexc->getCollisionVertex();
-    CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
-
     /*
     int v1 = CollisionManager::addCollisionVertex(vertexa->position[0] + 100 * normal[0],
                                                     vertexa->position[1] + 100 * normal[2],
