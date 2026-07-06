@@ -153,6 +153,8 @@ struct SurfaceTransform {
     float u = 0.5;
     float v = 0.5;
     Vector3 normalDirection{0, 1, 0};
+
+    Vector3 getUVPosition() const;
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_PRIMITIVES_H
