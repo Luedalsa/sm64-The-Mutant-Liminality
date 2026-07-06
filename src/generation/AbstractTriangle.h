@@ -29,7 +29,7 @@ extern "C" {
 // ─────────────────────────────────────────────────────────────────────────────
 class AbstractTriangle {
     int vertices[3]{};
-    Vec3f normal{};
+    Vector3 normal{};
     bool built = false;
 
 protected:
@@ -49,7 +49,7 @@ public:
 
     // ── Accesores ────────────────────────────────────────────────────────────
     const int getVertex(int i) const { return vertices[i]; }
-    const Vec3f&          getNormal()      const { return normal; }
+    const Vector3&          getNormal()      const { return normal; }
 
     // ─────────────────────────────────────────────────────────────────────────
     //  clip(cutter)
