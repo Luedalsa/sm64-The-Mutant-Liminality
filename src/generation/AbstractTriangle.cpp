@@ -254,3 +254,15 @@ void AbstractTriangle::build() {
         bool anyNeg = d0 < -eps || d1 < -eps || d2 < -eps;
         return anyPos && anyNeg;
     }*/
+
+void CheckerboardFloorTriangle::build() {
+    AbstractTriangle::build();
+
+    AbstractVertex* vertexa = VertexCollection::getVertex(getVertex(0));
+    AbstractVertex* vertexb = VertexCollection::getVertex(getVertex(1));
+    AbstractVertex* vertexc = VertexCollection::getVertex(getVertex(2));
+    int vv1 = vertexa->getCollisionVertex();
+    int vv2 = vertexb->getCollisionVertex();
+    int vv3 = vertexc->getCollisionVertex();
+    CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
+}
