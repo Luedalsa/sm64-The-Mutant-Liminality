@@ -12,7 +12,7 @@ int TriangleCollection::createTriangle(Args&&... args) {
     int id = triangles.size() - 1;
     if (VertexCollection::getVertexCount() > 3 && VertexCollection::getVertex(v1)->connectingTriangles.empty() && VertexCollection::getVertex(v2)->connectingTriangles.empty() && VertexCollection::getVertex(v3)->connectingTriangles.empty()) {
         std::cerr << "Warning: Triangle " << id << " is disconnected from the collection. Breadth-first search (BFS) is expected to fail\n";
-        VertexCollection::getVertex(v1)->connectingTriangles.push_back(id);
+        VertexCollection::getVertex(0)->connectingTriangles.push_back(id);
         }
     VertexCollection::getVertex(v1)->connectingTriangles.push_back(id);
     VertexCollection::getVertex(v2)->connectingTriangles.push_back(id);
