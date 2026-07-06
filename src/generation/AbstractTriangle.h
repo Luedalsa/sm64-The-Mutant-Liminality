@@ -30,6 +30,7 @@ extern "C" {
 class AbstractTriangle {
     int vertices[3]{};
     Vec3f normal{};
+    bool built = false;
 
     // ── Constructor ──────────────────────────────────────────────────────────
     AbstractTriangle(int v1,
@@ -40,9 +41,10 @@ class AbstractTriangle {
 
 public:
     bool active = false;
-    bool built = false;
 
     void build();
+
+    bool isBuilt() const { return built; }
 
     // ── Accesores ────────────────────────────────────────────────────────────
     const int getVertex(int i) const { return vertices[i]; }

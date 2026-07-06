@@ -22,7 +22,7 @@ LevelScript * LevelScriptManager::buildLevel() {
         auto t = trianglesQueue.front();
         trianglesQueue.pop();
         auto triangle = TriangleCollection::getTriangle(t);
-        if (triangle->built == false) {
+        if (triangle->isBuilt() == false) {
             triangle->build();
         }
     }
