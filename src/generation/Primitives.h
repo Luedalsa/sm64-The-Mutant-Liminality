@@ -30,6 +30,12 @@ public:
         }
         return v;
     }
+    operator signed char() const {
+        if (v > INT8_MAX || v < INT8_MIN) {
+            std::cerr << "Axis component must be in the range of int8_t. VALUE HAS BEEN TRUNCATED." << std::endl;
+        }
+        return v;
+    }
 
     Axis& operator=(float n) {
         if (n > INT16_MAX || n < INT16_MIN) {
