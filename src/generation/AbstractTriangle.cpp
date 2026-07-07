@@ -76,42 +76,39 @@ void AbstractTriangle::build() {
     if (built) return;
     built = true;
 
-    /*
-    int v1 = CollisionManager::addCollisionVertex(vertexa->position[0] + 100 * normal[0],
-                                                    vertexa->position[1] + 100 * normal[2],
-                                                    vertexa->position[2] + 100 * normal[2]);
-    int v2 = CollisionManager::addCollisionVertex(vertexb->position[0] + 100 * normal[0],
-                                                    vertexb->position[1] + 100 * normal[1],
-                                                    vertexb->position[2] + 100 * normal[2]);
-    int v3 = CollisionManager::addCollisionVertex(vertexc->position[0] + 100 * normal[0],
-                                                    vertexc->position[1] + 100 * normal[1],
-                                                    vertexc->position[2] + 100 * normal[2]);
-    CollisionManager::addCollisionTriangle(v1, v2, v3, SURFACE_BURNING);
-    */
-/*
-    DisplayListManager::addDisplayListSegment(
-        {
-                    {vertexa->position[0], vertexa->position[1], vertexa->position[2], 0, 0, 0, 127, 0, 0, 255},
-                    {vertexb->position[0], vertexb->position[1], vertexb->position[2], 0, 0, 32, 127, 0, 0, 255},
-                    {vertexc->position[0], vertexc->position[1], vertexc->position[2], 0, 64, 0, 127, 0, 0, 255}
-                },
-                {
-                    {0, 1, 2}
-                },
-                fire_09002000
-    );
-
-    ActorSpawnerManager::spawnGoomba(
-        (vertexa->position[0] + vertexb->position[0] + vertexc->position[0]) / 3,
-        (vertexa->position[1] + vertexb->position[1] + vertexc->position[1]) / 3,
-        (vertexa->position[2] + vertexb->position[2] + vertexc->position[2]) / 3
-    );*/
+    std::vector<int> trianglesToBuild;
+    std::queue<int> frontier;
 
     for (int i = 0; i < 3; ++i) {
         for (auto t : VertexCollection::getVertex(vertices[i])->connectingTriangles) {
-            LevelScriptManager::addTriangleToBuildQueue(t);
-        };
+            frontier.push(t);
+        }
     }
+
+    while (!frontier.empty()) {
+        int t = frontier.front();
+        frontier.pop();
+
+        AbstractTriangle* neighbor = TriangleCollection::getTriangle(t);
+
+        if (neighbor == this) continue;
+
+        if (typeid(*neighbor) == typeid(*this)) {
+            if (neighbor->built) continue;
+            neighbor->built = true;
+            trianglesToBuild.push_back(t);
+
+            for (int i = 0; i < 3; ++i) {
+                for (auto t2 : VertexCollection::getVertex(neighbor->vertices[i])->connectingTriangles) {
+                    frontier.push(t2);
+                }
+            }
+        } else {
+            LevelScriptManager::addTriangleToBuildQueue(t);
+        }
+    }
+
+    buildGeometry(trianglesToBuild);
 }
 
 

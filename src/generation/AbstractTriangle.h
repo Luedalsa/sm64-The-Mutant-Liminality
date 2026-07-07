@@ -43,7 +43,8 @@ protected:
 public:
     bool active = false;
 
-    virtual void build();
+    void build();
+    virtual void buildGeometry(std::vector<int>& neighbours) = 0;
 
     bool isBuilt() const { return built; }
 
