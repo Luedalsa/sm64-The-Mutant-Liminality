@@ -85,7 +85,7 @@ class CheckerboardFloorTriangle : public AbstractTriangle {
     }
     friend class TriangleCollection;
 public:
-    void build() override;
+    void buildGeometry(std::vector<int>& neighbours) override;
 };
 
 #endif // SM64_PORT_ABSTRACTTRIANGLE_H

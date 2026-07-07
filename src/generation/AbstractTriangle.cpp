@@ -241,9 +241,7 @@ void AbstractTriangle::build() {
         return anyPos && anyNeg;
     }*/
 
-void CheckerboardFloorTriangle::build() {
-    AbstractTriangle::build();
-
+void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
     AbstractVertex* vertexa = VertexCollection::getVertex(getVertex(0));
     AbstractVertex* vertexb = VertexCollection::getVertex(getVertex(1));
     AbstractVertex* vertexc = VertexCollection::getVertex(getVertex(2));
