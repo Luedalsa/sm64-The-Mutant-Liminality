@@ -7,6 +7,7 @@
 #include "AbstractTriangle.h"
 #include "AbstractVertex.h"
 
+#include <map>
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Helpers
@@ -242,6 +243,10 @@ void AbstractTriangle::build() {
     }*/
 
 void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
+    std::map<int, int> localVertexSegment;
+    std::vector<std::array<int, 3>> localTriangleSegment;
+    std::vector<DisplayVertex> displayVertices;
+    int currentVertex = 0;
     for (auto n : neighbours) {
         auto tri = TriangleCollection::getTriangle(n);
         AbstractVertex* vertexa = VertexCollection::getVertex(tri->getVertex(0));
@@ -251,5 +256,16 @@ void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
         int vv2 = vertexb->getCollisionVertex();
         int vv3 = vertexc->getCollisionVertex();
         CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
+
+        for (int i = 0; i < 3; ++i) {
+            int v = tri->getVertex(i);
+            if (localVertexSegment.find(v) == localVertexSegment.end()) {
+                localVertexSegment[v] = currentVertex++;
+                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, 0, 0, {127, 127, 127}});
+            }
+        }
+        localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
     }
+
+    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, inside_09004000);
 }
