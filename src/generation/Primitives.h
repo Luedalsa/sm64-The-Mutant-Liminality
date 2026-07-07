@@ -163,4 +163,27 @@ struct SurfaceTransform {
     Vector3 getUVPosition() const;
 };
 
+struct DisplayVertex {
+    Vector3 position;
+    short int flag = 0;
+    short int textureU;
+    short int textureV;
+    Vector3 normal;
+
+    operator Vtx() const {
+        Vtx vtx{};
+        vtx.n.ob[0] = static_cast<short>(position.x); // Axis ya trunca/avisa
+        vtx.n.ob[1] = static_cast<short>(position.y);
+        vtx.n.ob[2] = static_cast<short>(position.z);
+        vtx.n.flag  = static_cast<unsigned short>(flag);
+        vtx.n.tc[0] = textureU;
+        vtx.n.tc[1] = textureV;
+        vtx.n.n[0]  = static_cast<signed char>(normal.x * 127.0f);
+        vtx.n.n[1]  = static_cast<signed char>(normal.y * 127.0f);
+        vtx.n.n[2]  = static_cast<signed char>(normal.z * 127.0f);
+        vtx.n.a     = 0xFF;
+        return vtx;
+    }
+};
+
 #endif // SM64_THE_MUTANT_LIMINALITY_PRIMITIVES_H
