@@ -242,11 +242,14 @@ void AbstractTriangle::build() {
     }*/
 
 void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
-    AbstractVertex* vertexa = VertexCollection::getVertex(getVertex(0));
-    AbstractVertex* vertexb = VertexCollection::getVertex(getVertex(1));
-    AbstractVertex* vertexc = VertexCollection::getVertex(getVertex(2));
-    int vv1 = vertexa->getCollisionVertex();
-    int vv2 = vertexb->getCollisionVertex();
-    int vv3 = vertexc->getCollisionVertex();
-    CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
+    for (auto n : neighbours) {
+        auto tri = TriangleCollection::getTriangle(n);
+        AbstractVertex* vertexa = VertexCollection::getVertex(tri->getVertex(0));
+        AbstractVertex* vertexb = VertexCollection::getVertex(tri->getVertex(1));
+        AbstractVertex* vertexc = VertexCollection::getVertex(tri->getVertex(2));
+        int vv1 = vertexa->getCollisionVertex();
+        int vv2 = vertexb->getCollisionVertex();
+        int vv3 = vertexc->getCollisionVertex();
+        CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
+    }
 }
