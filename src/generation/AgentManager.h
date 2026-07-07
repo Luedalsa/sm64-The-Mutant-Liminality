@@ -18,7 +18,7 @@ public:
     }
 
     static void start() {
-        TriangleCollection::createTriangle<AbstractTriangle>(
+        TriangleCollection::createTriangle<CheckerboardFloorTriangle>(
             VertexCollection::createVertex({1, 0, 1}),
             VertexCollection::createVertex({1, 0, -1}),
             VertexCollection::createVertex({-1, 0, -1}));
