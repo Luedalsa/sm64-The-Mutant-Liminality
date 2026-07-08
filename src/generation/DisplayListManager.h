@@ -55,6 +55,11 @@ extern "C" {
 
 } // extern "C"
 
+static constexpr Lights1 globalLights = gdSPDefLights1(
+    0x5f, 0x5f, 0x5f,
+    0xff, 0xff, 0xff, 0x28, 0x28, 0x28
+);
+
 
 class DisplayListManager {
     static std::vector<std::vector<DisplayVertex>> displayVertices;
@@ -86,6 +91,8 @@ class DisplayListManager {
         *p++ = gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
         *p++ = gsDPLoadSync();
         *p++ = gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+        *p++ = gsSPLight(&globalLights.l, 1);
+        *p++ = gsSPLight(&globalLights.a, 2);
         *p++ = gsSPVertex(buildVertexSegment(vertices), vertices.size(), 0);
 
         for (const auto& triangle : triangles) {
@@ -137,6 +144,7 @@ public:
         *p++ = gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF);
         *p++ = gsDPPipeSync();
         *p++ = gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE);
+        *p++ = gsSPSetGeometryMode(G_LIGHTING);
         *p++ = gsSPEndDisplayList();
 
         return displayList;
