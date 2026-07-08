@@ -78,6 +78,8 @@ void AbstractTriangle::build() {
     built = true;
 
     std::vector<int> trianglesToBuild;
+    trianglesToBuild.push_back(selfIndex);
+
     std::queue<int> frontier;
 
     for (int i = 0; i < 3; ++i) {

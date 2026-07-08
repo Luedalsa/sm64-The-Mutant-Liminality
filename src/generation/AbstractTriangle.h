@@ -31,6 +31,7 @@ class AbstractTriangle {
     int vertices[3]{};
     Vector3 normal{};
     bool built = false;
+    int selfIndex = -1;
 
 protected:
     // ── Constructor ──────────────────────────────────────────────────────────
