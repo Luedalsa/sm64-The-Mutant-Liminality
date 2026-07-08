@@ -24,7 +24,6 @@ extern "C" {
 #include <cmath>
 
 class Agent {
-    SurfaceTransform birthPosition;
 
     // Base ortonormal local: up = normal de la superficie, right/forward
     // derivados por producto cruz para no depender de un único eje "mundo".
@@ -38,7 +37,8 @@ class Agent {
         right   = up.cross(reference).normalized();
         forward = right.cross(up).normalized();
     }
-    */
+protected:
+    SurfaceTransform birthPosition;
 
 public:
     explicit Agent(const SurfaceTransform& transform) : birthPosition(transform) {}
