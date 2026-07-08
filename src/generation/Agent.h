@@ -46,12 +46,9 @@ public:
 
     virtual void grow() = 0;
 
-    // Convierte una posición local (relativa al agente) en un vértice mundial
-    // y lo registra en VertexCollection. Convención: y local = eje normal (up),
-    // x local = right, z local = forward.
-    int createLocalVertex(Vector3& v) {
+    int createLocalVertex(Vector3 v) {
         Vector3 right, up, forward;
-        //getLocalBasis(right, up, forward);
+        getLocalBasis(right, up, forward);
 
         Vector3 worldPos = birthPosition.getUVPosition()
                           + right   * v.x
