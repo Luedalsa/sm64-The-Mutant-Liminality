@@ -86,7 +86,7 @@ public:
         // Cara Inferior (Base)
 
         TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v2, v3);
-        TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v2, v4);
+        TriangleCollection::createTriangle<LavaTriangle>(v3, v2, v4);
 
         // Cara Frontal (Z = -3000)
         TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v4, v2, v5);
