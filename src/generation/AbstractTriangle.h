@@ -52,31 +52,6 @@ public:
     // ── Accesores ────────────────────────────────────────────────────────────
     const int getVertex(int i) const { return vertices[i]; }
     const Vector3&          getNormal()      const { return normal; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  clip(cutter)
-    //
-    //  Corta *this* con el plano infinito del triángulo `cutter` y devuelve
-    //  la retriangulación completa de *this*.
-    //
-    //  Clasificación por signo de distancia euclidiana al plano:
-    //    d_euc[i] = signedDist(i) / |normal|
-    //
-    //  Casos (A = positivos, B = negativos, O = sobre el plano):
-    //
-    //    Sin corte          posCount==0 || negCount==0
-    //      → { copia de this }
-    //
-    //    Corte genérico     (posCount==2,negCount==1) o (posCount==1,negCount==2)
-    //      → 3 triángulos   (un vértice solo + dos puntos interpolados)
-    //
-    //    Vértice en plano   posCount==1, negCount==1, un sign==0
-    //      → 2 triángulos   (ese vértice + el punto interpolado en arista opuesta)
-    //
-    //  GESTIÓN DE MEMORIA: los AbstractVertex interpolados se crean con `new`.
-    //  El caller es responsable de liberarlos (o usar un pool externo).
-    // ─────────────────────────────────────────────────────────────────────────
-    std::vector<AbstractTriangle*> clip(const AbstractTriangle& cutter) const;
 };
 
 class CheckerboardFloorTriangle : public AbstractTriangle {
