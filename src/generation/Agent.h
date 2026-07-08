@@ -25,16 +25,15 @@ extern "C" {
 
 class Agent {
 
-    // Base ortonormal local: up = normal de la superficie, right/forward
-    // derivados por producto cruz para no depender de un único eje "mundo".
-    /*
     void getLocalBasis(Vector3& right, Vector3& up, Vector3& forward) const {
-        up = birthPosition.normalDirection.normalized();
+        up = TriangleCollection::getTriangle(birthPosition.triangle)->getNormal();
 
-        // Vector de referencia arbitrario, evitando que sea paralelo a 'up'
-        Vector3 reference = (std::fabs(up.y) < 0.99f) ? Vector3(0, 1, 0) : Vector3(1, 0, 0);
+        Vector3 inheritedForward = birthPosition.forward;
+        Vector3 reference = (std::fabs(up.dot(inheritedForward.normalized())) < 0.99f)
+                           ? inheritedForward
+                           : Vector3(0, 1, 0);
 
-        right   = up.cross(reference).normalized();
+        right   = reference.cross(up).normalized();
         forward = right.cross(up).normalized();
     }
 protected:
