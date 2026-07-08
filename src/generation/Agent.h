@@ -65,18 +65,21 @@ public:
     ~DebugAgent() override = default;
     void grow() override {
         energy--;
-        // --- VÉRTICES ---
-        // Base (Y = 0)
-        int v4 = VertexCollection::createVertex({-3000, 0, -3000}); // Frente, Izquierda
-        int v2 = VertexCollection::createVertex({3000, 0, -3000});  // Frente, Derecha
-        int v3 = VertexCollection::createVertex({-3000, 0, 3000});  // Atrás, Izquierda
-        int v1 = VertexCollection::createVertex({3000, 0, 3000});   // Atrás, Derecha
 
-        // Techo (Y = 3000)
-        int v6 = VertexCollection::createVertex({-3000, 3000, -3000}); // Frente, Izquierda (Asignado)
-        int v5 = VertexCollection::createVertex({3000, 3000, -3000});  // Frente, Derecha
-        int v7 = VertexCollection::createVertex({-3000, 3000, 3000});  // Atrás, Izquierda (Asignado)
-        int v8 = VertexCollection::createVertex({3000, 3000, 3000});   // Atrás, Derecha (Asignado)
+        float fy = birthPosition.forward.y;
+        constexpr float EPS = 0.001f;
+        float cosPitch = std::sqrt(std::max(0.0f, 1.0f - fy * fy));
+        float frontHeight = (cosPitch > EPS) ? (fy * 3000.0f / cosPitch) : std::copysign(30000.0f, fy);
+
+        int v4 = createLocalVertex({-3000, frontHeight, -3000}); // Frente, Izquierda
+        int v2 = createLocalVertex({3000, frontHeight, -3000});  // Frente, Derecha
+        int v3 = createLocalVertex({-3000, 0, 0});               // Atrás, Izquierda
+        int v1 = createLocalVertex({3000, 0, 0});                // Atrás, Derecha
+
+        int v6 = createLocalVertex({-3000, frontHeight + 3000.0f, -3000}); // Frente, Izquierda
+        int v5 = createLocalVertex({3000, frontHeight + 3000.0f, -3000});  // Frente, Derecha
+        int v7 = createLocalVertex({-3000, 3000, 0});                      // Atrás, Izquierda
+        int v8 = createLocalVertex({3000, 3000, 0});                       // Atrás, Derecha
 
         // --- TRIÁNGULOS ---
         // Cara Inferior (Base)
