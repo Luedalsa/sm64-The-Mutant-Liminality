@@ -89,4 +89,14 @@ public:
     void buildGeometry(std::vector<int>& neighbours) override;
 };
 
+class LavaTriangle : public AbstractTriangle {
+protected:
+    LavaTriangle(int v1, int v2, int v3) : AbstractTriangle(v1, v2, v3) {
+        active = true;
+    }
+    friend class TriangleCollection;
+public:
+    void buildGeometry(std::vector<int>& neighbours) override;
+};
+
 #endif // SM64_PORT_ABSTRACTTRIANGLE_H

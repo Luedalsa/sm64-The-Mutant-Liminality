@@ -271,3 +271,32 @@ void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
 
     DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, inside_09004000);
 }
+
+
+void LavaTriangle::buildGeometry(std::vector<int>& neighbours) {
+    std::map<int, int> localVertexSegment;
+    std::vector<std::array<int, 3>> localTriangleSegment;
+    std::vector<DisplayVertex> displayVertices;
+    int currentVertex = 0;
+    for (auto n : neighbours) {
+        auto tri = TriangleCollection::getTriangle(n);
+        AbstractVertex* vertexa = VertexCollection::getVertex(tri->getVertex(0));
+        AbstractVertex* vertexb = VertexCollection::getVertex(tri->getVertex(1));
+        AbstractVertex* vertexc = VertexCollection::getVertex(tri->getVertex(2));
+        int vv1 = vertexa->getCollisionVertex();
+        int vv2 = vertexb->getCollisionVertex();
+        int vv3 = vertexc->getCollisionVertex();
+        CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_BURNING);
+
+        for (int i = 0; i < 3; ++i) {
+            int v = tri->getVertex(i);
+            if (localVertexSegment.find(v) == localVertexSegment.end()) {
+                localVertexSegment[v] = currentVertex++;
+                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, {0, 127, 0}});
+            }
+        }
+        localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
+    }
+
+    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, fire_09009000);
+}
