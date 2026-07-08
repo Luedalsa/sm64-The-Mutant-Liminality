@@ -22,7 +22,7 @@ public:
             VertexCollection::createVertex({1, 0, 1}),
             VertexCollection::createVertex({1, 0, -1}),
             VertexCollection::createVertex({-1, 0, -1}));
-        DebugAgent ok(SurfaceTransform{0,0.5,0.5,{0,1, 0}});
+        DebugAgent ok(SurfaceTransform{0,0.5,0.5,{ 0,0.1, -0.7071}});
         agentQueue.push(&ok);
         while (!agentQueue.empty()) {
             auto agent = agentQueue.top();
