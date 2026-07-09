@@ -17,7 +17,7 @@ void AgentManager::start() {
     agentQueue.push(&ok);
     while (!agentQueue.empty()) {
         auto agent = agentQueue.top();
-        agent->grow();
         agentQueue.pop();
+        agent->grow();
     }
 }
