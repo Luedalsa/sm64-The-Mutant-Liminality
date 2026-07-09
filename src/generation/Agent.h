@@ -26,12 +26,14 @@ extern "C" {
 class Agent {
 
     void getLocalBasis(Vector3& right, Vector3& up, Vector3& forward) const {
-        up = TriangleCollection::getTriangle(birthPosition.triangle)->getNormal();
+        up = Vector3(0, 1, 0);
 
         Vector3 inheritedForward = birthPosition.forward;
-        Vector3 reference = (std::fabs(up.dot(inheritedForward.normalized())) < 0.99f)
-                           ? inheritedForward
-                           : Vector3(0, 1, 0);
+        Vector3 flatForward(inheritedForward.x, 0, inheritedForward.z);
+
+        Vector3 reference = (flatForward.length() > 0.0001f)
+                           ? flatForward.normalized()
+                           : Vector3(0, 0, -1);
 
         right   = reference.cross(up).normalized();
         forward = right.cross(up).normalized();
