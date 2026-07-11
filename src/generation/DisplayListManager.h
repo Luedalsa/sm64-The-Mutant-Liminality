@@ -78,31 +78,70 @@ class DisplayListManager {
 
         return vertexSegment;
     }
+static Gfx* buildDisplayListSegment(const std::vector<DisplayVertex>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
+    constexpr size_t maxVertsPerLoad = 32;
 
-    static Gfx* buildDisplayListSegment(const std::vector<DisplayVertex>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
-        const size_t headerCount = 4;
-        const size_t footerCount = 1;
-        const size_t triangleCount = triangles.size();
+    struct Chunk {
+        std::vector<DisplayVertex> verts;
+        std::vector<std::array<int, 3>> tris;
+    };
+    std::vector<Chunk> chunks;
+    chunks.emplace_back();
 
-        Gfx* displayListSegment = LevelPoolManager::allocOnPool<Gfx>(headerCount + triangleCount + footerCount);
+    std::vector<int> remap(vertices.size(), -1);
 
-        auto p = displayListSegment;
-
-        *p++ = gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
-        *p++ = gsDPLoadSync();
-        *p++ = gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
-        *p++ = gsSPLight(&globalLights.l, 1);
-        *p++ = gsSPLight(&globalLights.a, 2);
-        *p++ = gsSPVertex(buildVertexSegment(vertices), vertices.size(), 0);
-
-        for (const auto& triangle : triangles) {
-            *p++ = gsSP1Triangle(triangle[0], triangle[1], triangle[2], 0x0);
+    for (const auto& tri : triangles) {
+        int missing = 0;
+        for (int i = 0; i < 3; ++i) {
+            if (remap[tri[i]] == -1) missing++;
         }
 
-        *p++ = gsSPEndDisplayList();
+        if (chunks.back().verts.size() + missing > maxVertsPerLoad) {
+            chunks.emplace_back();
+            std::fill(remap.begin(), remap.end(), -1);
+        }
 
-        return displayListSegment;
+        Chunk& current = chunks.back();
+        std::array<int, 3> localTri{};
+        for (int i = 0; i < 3; ++i) {
+            int orig = tri[i];
+            if (remap[orig] == -1) {
+                current.verts.push_back(vertices[orig]);
+                remap[orig] = static_cast<int>(current.verts.size()) - 1;
+            }
+            localTri[i] = remap[orig];
+        }
+        current.tris.push_back(localTri);
     }
+
+    const size_t headerCount = 5; // gsDPSetTextureImage, gsDPLoadSync, gsDPLoadBlock, gsSPLight x2
+    const size_t footerCount = 1; // gsSPEndDisplayList
+    size_t bodyCount = 0;
+    for (const auto& chunk : chunks) {
+        bodyCount += 1 /*gsSPVertex*/ + chunk.tris.size();
+    }
+
+    Gfx* displayListSegment = LevelPoolManager::allocOnPool<Gfx>(headerCount + bodyCount + footerCount);
+
+    auto p = displayListSegment;
+
+    *p++ = gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
+    *p++ = gsDPLoadSync();
+    *p++ = gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+    *p++ = gsSPLight(&globalLights.l, 1);
+    *p++ = gsSPLight(&globalLights.a, 2);
+
+    for (const auto& chunk : chunks) {
+        *p++ = gsSPVertex(buildVertexSegment(chunk.verts), chunk.verts.size(), 0);
+        for (const auto& triangle : chunk.tris) {
+            *p++ = gsSP1Triangle(triangle[0], triangle[1], triangle[2], 0x0);
+        }
+    }
+
+    *p++ = gsSPEndDisplayList();
+
+    return displayListSegment;
+}
 
 public:
 
