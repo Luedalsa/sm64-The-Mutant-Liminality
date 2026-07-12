@@ -124,3 +124,11 @@ void LavaTriangle::buildGeometry(std::vector<int>& neighbours) {
 
     DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, fire_09009000);
 }
+
+int CheckerboardFloorTriangle::cloneWithVertices(int v1, int v2, int v3) const {
+    return TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v2, v3);
+}
+
+int LavaTriangle::cloneWithVertices(int v1, int v2, int v3) const {
+    return TriangleCollection::createTriangle<LavaTriangle>(v1, v2, v3);
+}

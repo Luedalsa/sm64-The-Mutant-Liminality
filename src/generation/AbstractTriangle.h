@@ -34,10 +34,7 @@ class AbstractTriangle {
     int selfIndex = -1;
 
 protected:
-    // ── Constructor ──────────────────────────────────────────────────────────
-    AbstractTriangle(int v1,
-                     int v2,
-                     int v3);
+    AbstractTriangle(int v1, int v2, int v3);
 
     friend class TriangleCollection;
 
@@ -49,9 +46,13 @@ public:
 
     bool isBuilt() const { return built; }
 
-    // ── Accesores ────────────────────────────────────────────────────────────
     const int getVertex(int i) const { return vertices[i]; }
-    const Vector3&          getNormal()      const { return normal; }
+
+    const Vector3& getNormal() const { return normal; }
+
+    void markSuperseded() { built = true; }
+
+    virtual int cloneWithVertices(int v1, int v2, int v3) const = 0;
 };
 
 class CheckerboardFloorTriangle : public AbstractTriangle {
@@ -62,6 +63,7 @@ class CheckerboardFloorTriangle : public AbstractTriangle {
     friend class TriangleCollection;
 public:
     void buildGeometry(std::vector<int>& neighbours) override;
+    int cloneWithVertices(int v1, int v2, int v3) const override;
 };
 
 class LavaTriangle : public AbstractTriangle {
@@ -72,6 +74,7 @@ protected:
     friend class TriangleCollection;
 public:
     void buildGeometry(std::vector<int>& neighbours) override;
+    int cloneWithVertices(int v1, int v2, int v3) const override;
 };
 
 #endif // SM64_PORT_ABSTRACTTRIANGLE_H
