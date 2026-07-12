@@ -87,7 +87,7 @@ void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
             int v = tri->getVertex(i);
             if (localVertexSegment.find(v) == localVertexSegment.end()) {
                 localVertexSegment[v] = currentVertex++;
-                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, {0, 127, 0}});
+                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, { static_cast<float>(std::rand()), static_cast<float>(std::rand()), static_cast<float>(std::rand())}});
             }
         }
         localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
@@ -116,7 +116,7 @@ void LavaTriangle::buildGeometry(std::vector<int>& neighbours) {
             int v = tri->getVertex(i);
             if (localVertexSegment.find(v) == localVertexSegment.end()) {
                 localVertexSegment[v] = currentVertex++;
-                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, {0, 127, 0}});
+                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, { static_cast<float>(std::rand()), static_cast<float>(std::rand()), static_cast<float>(std::rand())}});
             }
         }
         localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
