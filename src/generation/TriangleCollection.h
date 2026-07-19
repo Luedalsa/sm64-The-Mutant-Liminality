@@ -20,6 +20,9 @@ class TriangleCollection {
     static std::deque<std::unique_ptr<AbstractTriangle>> triangles;
 
 public:
+
+    static int getTriangleCount() { return static_cast<int>(triangles.size()); }
+
     static void forEachTriangleIntersectingBox(
         const Vec3f boxStart,
         const Vec3f boxEnd,
@@ -30,6 +33,10 @@ public:
     static AbstractTriangle* getTriangle(int t) {
         return triangles[t].get();
     };
+    // TriangleCollection.h — agregar
+    static void markSuperseded(int triangleId) {
+        getTriangle(triangleId)->markSuperseded();
+    }
 };
 
 #include "TriangleCollection.tpp"
