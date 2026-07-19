@@ -8,6 +8,7 @@
 #include "engine/surface_collision.h"
 #include "levels/castle_inside/header.h"
 #include "AgentManager.h"
+#include "DebugExport.h"
 #include "LevelScriptManager.h"
 #include "game/ingame_menu.h"
 
@@ -84,6 +85,8 @@ s32 castle_init(s16 arg, s32 unused) {
     AgentManager::start();
     mutantCastleLevelScript = LevelScriptManager::buildLevel();
     level_castle_inside_entry[3] = (LevelScript)mutantCastleLevelScript;
+
+    exportTrianglesToObj("debug_pass1.obj", "ok");
 
     //MutantCastle mutantCastle = MutantCastle();
     //mutantCastle.build();
