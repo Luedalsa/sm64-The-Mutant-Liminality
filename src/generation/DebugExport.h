@@ -9,6 +9,7 @@
 #include <vector>
 #include "VertexCollection.h"
 #include "AbstractVertex.h"
+#include "TriangleCollection.h"
 
 inline void exportTrianglesToObj(
     const std::string& path,
