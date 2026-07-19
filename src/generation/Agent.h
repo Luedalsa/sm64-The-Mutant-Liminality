@@ -7,6 +7,7 @@
 #include "VertexCollection.h"
 #include "TriangleCollection.h"
 #include "AbstractVertex.h"
+#include "AgentManager.h"
 #include "Primitives.h"
 
 extern "C" {
@@ -59,6 +60,13 @@ public:
 
         return VertexCollection::createVertex(worldPos);
     }
+};
+
+class DebugAgent2 : public Agent {
+public:
+    DebugAgent2(const SurfaceTransform &transform) : Agent(transform) {energy = 3;};
+    ~DebugAgent2() override = default;
+    void grow() override;
 };
 
 class DebugAgent : public Agent {
