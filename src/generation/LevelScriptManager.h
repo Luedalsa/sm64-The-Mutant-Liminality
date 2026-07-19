@@ -119,13 +119,13 @@ class LevelScriptManager {
 
     static Collision* buildTerrain() {
         //return (short*)&inside_castle_seg7_area_1_collision[0]; // Default collision for reference
-/*
+
         auto collisionVertices = CollisionManager::getCollisionVertices();
-        auto collisionTriangles = CollisionManager::getCollisionTriangles();*/
+        auto collisionTriangles = CollisionManager::getCollisionTriangles();
 
         // Security floor
-        std::vector<Vector3> collisionVertices{{16000, 0, 16000}, {16000, 0, -16000}, {-16000, 0, 16000}, {-16000, 0, -16000}};
-        std::unordered_map<int, std::vector<int>> collisionTriangles{{SURFACE_DEFAULT, {0, 1, 2, 2, 1, 3}}};
+        /*std::vector<Vector3> collisionVertices{{16000, 0, 16000}, {16000, 0, -16000}, {-16000, 0, 16000}, {-16000, 0, -16000}};
+        std::unordered_map<int, std::vector<int>> collisionTriangles{{SURFACE_DEFAULT, {0, 1, 2, 2, 1, 3}}};*/
 
         auto triangles = 0;
         for (auto& t : collisionTriangles) {
