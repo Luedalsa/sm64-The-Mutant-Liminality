@@ -29,6 +29,7 @@ inline void exportTrianglesToObj(
     out << "g " << groupName << "\n";
 
     for (int t = 0; t < TriangleCollection::getTriangleCount(); ++t) {
+        if (TriangleCollection::getTriangle(t)->isBuilt()) continue;
         auto tri = TriangleCollection::getTriangle(t);
         auto v1 = tri->getVertex(0);
         auto v2 = tri->getVertex(1);
