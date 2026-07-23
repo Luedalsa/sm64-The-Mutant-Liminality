@@ -235,7 +235,7 @@ while (!pending.empty()) {
         std::vector<int> opposites;
         for (int ownerId : owners) {
             AbstractTriangle* owner = TriangleCollection::getTriangle(ownerId);
-            if (owner->isBuilt()) break;
+            if (owner->isBuilt()) continue;
             for (int i = 0; i < 3; ++i) {
                 int v = owner->getVertex(i);
                 if (v != edge[0] && v != edge[1]) opposites.push_back(v);
