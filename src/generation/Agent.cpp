@@ -4,6 +4,8 @@
 
 #include "Agent.h"
 
+#include "TriangleOverlapSolver.h"
+
 void DebugAgent2::grow() {
     energy--;
 
@@ -12,41 +14,43 @@ void DebugAgent2::grow() {
     float cosPitch = std::sqrt(std::max(0.0f, 1.0f - fy * fy));
     float frontHeight = (cosPitch > EPS) ? (fy * 3000.0f / cosPitch) : std::copysign(30000.0f, fy);
 
-    int v4 = createLocalVertex({ -3000, frontHeight, -3000 }); // Frente, Izquierda
-    int v2 = createLocalVertex({ 3000, frontHeight, -3000 });  // Frente, Derecha
-    int v3 = createLocalVertex({ -3000, 0, 0 });               // Atrás, Izquierda
-    int v1 = createLocalVertex({ 3000, 0, 0 });                // Atrás, Derecha
+    std::vector<AgentTriangleRequest> prismFaces;
 
-    int v6 = createLocalVertex({ -3000, frontHeight + 3000.0f, -3000 }); // Frente, Izquierda
-    int v5 = createLocalVertex({ 3000, frontHeight + 3000.0f, -3000 });  // Frente, Derecha
-    int v7 = createLocalVertex({ -3000, 3000, 0 });                      // Atrás, Izquierda
-    int v8 = createLocalVertex({ 3000, 3000, 0 });                       // Atrás, Derecha
+    constexpr int kSides = 8;
+    constexpr float kPi = 3.14159265358979323846f;
+    constexpr float cx = 1500.0f, cz = -1200.0f; // Centro del octágono en XZ
+    constexpr float R = 1500.0f;                 // Circunradio (mismo "ancho" que la caja original)
+    constexpr float yBottom = 800.0f, yTop = 2000.0f;
 
-    // --- TRIÁNGULOS ---
-    // Cara Inferior (Base)
+    std::array<Vector3, kSides> bottom, top;
+    for (int i = 0; i < kSides; ++i) {
+        float angle = kPi * 2.0f * static_cast<float>(i) / static_cast<float>(kSides);
+        float x = cx + R * std::cos(angle);
+        float z = cz + R * std::sin(angle);
+        bottom[i] = Vector3(x, yBottom, z);
+        top[i]    = Vector3(x, yTop, z);
+    }
 
-    TriangleCollection::createTriangle<LavaTriangle>(v1, v2, v3);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v2, v4);
+    auto floorFactory = [](int a, int b, int c) { return TriangleCollection::createTriangle<CheckerboardFloorTriangle>(a, b, c); };
 
-    // Cara Frontal (Z = -3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v4, v2, v5);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v4, v5, v6);
+    // Piso (normal +y, hacia arriba, adentro del prisma): abanico desde vértice 0, orden CW.
+    for (int i = 1; i < kSides - 1; ++i) {
+        prismFaces.push_back({bottom[0], bottom[i + 1], bottom[i], floorFactory});
+    }
 
-    // Cara Superior (Techo)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v6, v5, v8);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v6, v8, v7);
+    // Techo (normal -y, hacia abajo, adentro del prisma): abanico desde vértice 0, orden CCW.
+    for (int i = 1; i < kSides - 1; ++i) {
+        prismFaces.push_back({top[0], top[i], top[i + 1], floorFactory});
+    }
 
-    // Cara Trasera (Z = 3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v3, v7);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v7, v8);
+    // Paredes laterales (normal hacia el centro del octágono, adentro del prisma).
+    for (int i = 0; i < kSides; ++i) {
+        int next = (i + 1) % kSides;
+        prismFaces.push_back({bottom[i], bottom[next], top[next], floorFactory});
+        prismFaces.push_back({bottom[i], top[next], top[i], floorFactory});
+    }
 
-    // Cara Izquierda (X = -3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v4, v6);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v6, v7);
-
-    // Cara Derecha (X = 3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v1, v8);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v8, v5);
+    TriangleOverlapSolver::resolve(prismFaces);
 }
 
 void DebugAgent::grow() {
@@ -93,5 +97,5 @@ void DebugAgent::grow() {
     TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v1, v8);
     TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v8, v5);
 
-    //AgentManager::createBabyAgent(*new DebugAgent2(SurfaceTransform{1, 0.25, 0.25, {0, 0, -1}}));
+    AgentManager::createBabyAgent(*new DebugAgent2(SurfaceTransform{1, 0.25, 0.25, {0, 0, -1}}));
 }
