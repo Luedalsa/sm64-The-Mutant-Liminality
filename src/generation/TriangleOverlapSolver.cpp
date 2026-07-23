@@ -248,40 +248,4 @@ while (!pending.empty()) {
             TriangleCollection::getTriangle(owners[1])->cloneWithVertices(opposites[1], opposites[0], edge[0]);
         }
     }
-
-    while (!sleepIsForTheWeak.empty()) {
-        auto edge = sleepIsForTheWeak.front();
-        sleepIsForTheWeak.pop();
-
-
-                        std::vector<int> owners;
-                        const auto& trisV1 = VertexCollection::getVertex(edge[0])->connectingTriangles;
-                        const auto& trisV2 = VertexCollection::getVertex(edge[1])->connectingTriangles;
-
-                        for (int t : trisV1) {
-                            //if (t == ownerTri) continue;
-                            if (TriangleCollection::getTriangle(t)->isBuilt()) continue; // muertos/superseded
-                            for (int t2 : trisV2) {
-                                if (t == t2) { owners.push_back(t); break; }
-                            }
-                        }
-
-                        std::vector<int> opposites;
-
-                        for (int ownerId : owners) {
-                            AbstractTriangle* owner = TriangleCollection::getTriangle(ownerId);
-                            if (owner->isBuilt()) break; // pudo superseder-se en una vuelta previa de este mismo lote
-                            int opposite = -1, idxA = -1, idxB = -1;
-                            for (int i = 0; i < 3; ++i) {
-                                int v = owner->getVertex(i);
-                                if (v == edge[0]) idxA = i;
-                                else if (v == edge[1]) idxB = i;
-                                else opposites.push_back(v);
-                            }
-                            owner->markSuperseded();
-                        }
-                            TriangleCollection::getTriangle(owners[0])->cloneWithVertices(opposites[0], opposites[1], edge[1]);
-                            TriangleCollection::getTriangle(owners[1])->cloneWithVertices(opposites[1], opposites[0], edge[0]);
-
-    }
 }
