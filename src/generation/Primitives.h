@@ -163,6 +163,11 @@ struct SurfaceTransform {
     Vector3 getUVPosition() const;
 };
 
+struct PointTransform {
+    Vector3 position{0, 0, 0};
+    Vector3 forward{0, 0, -1};
+};
+
 struct DisplayVertex {
     Vector3 position;
     short int flag = 0;
