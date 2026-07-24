@@ -57,6 +57,7 @@ struct EdgeCrossing {
     int va, vb;
     EdgeStrength strength;
     Vector3 point;
+    int hitEdgeIndex = -1; // -1 = interior de interiorTriId; 0..2 = edge propio
 };
 
 std::vector<EdgeCrossing> detectCrossings(int edgeOwnerId, int interiorTriId) {
@@ -74,27 +75,29 @@ std::vector<EdgeCrossing> detectCrossings(int edgeOwnerId, int interiorTriId) {
         Vector3 point;
 
         if (TriangleEdgeSplitSolver::segmentCrossesTriangleInterior(p0, p1, interiorTriId, point)) {
-            crossings.push_back({va, vb, strength, point});
+            crossings.push_back({va, vb, strength, point, -1});
+            continue;
+        }
+
+        TriangleEdgeSplitSolver::EdgeIntersection edgeHit;
+        if (TriangleEdgeSplitSolver::segmentCrossesTriangleEdge(p0, p1, interiorTriId, edgeHit)) {
+            crossings.push_back({va, vb, strength, edgeHit.point, edgeHit.edgeIndex});
         }
     }
     return crossings;
 }
 
-// ── Resolución pura: recibe un cruce Strong ya decidido y ejecuta split+fan ──
-// (idéntico a lo que antes estaba duplicado en las dos direcciones)
-void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTargetTriId,
-                             std::queue<int>& pending) {
-    int beforeCount = TriangleCollection::getTriangleCount();
-
-    int newVertex = TemporalVertexRegistry::getOrCreate(point, /*asStrong=*/true, 1.0f);
-    TriangleEdgeSplitSolver::splitTriangleAtInteriorPoint(splitTargetTriId, newVertex);
-
+// Split-en-2 propagado a TODOS los dueños non-manifold del edge (va,vb),
+// sin tocar la cola pending — el llamador decide qué encolar.
+// Extraído de resolveStrongEdgeSplit para reusarlo también en el caso
+// edge-on-edge (resolveEdgeCrossingSplit).
+void splitEdgeAcrossOwners(int va, int vb, int newVertex) {
     std::vector<int> owners;
     const auto& trisV1 = VertexCollection::getVertex(va)->connectingTriangles;
     const auto& trisV2 = VertexCollection::getVertex(vb)->connectingTriangles;
 
     for (int t : trisV1) {
-        if (TriangleCollection::getTriangle(t)->isBuilt()) continue; // muertos/superseded
+        if (TriangleCollection::getTriangle(t)->isBuilt()) continue;
         for (int t2 : trisV2) {
             if (t == t2) { owners.push_back(t); break; }
         }
@@ -102,7 +105,7 @@ void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTarge
 
     for (int ownerId : owners) {
         AbstractTriangle* owner = TriangleCollection::getTriangle(ownerId);
-        if (owner->isBuilt()) continue; // pudo superseder-se en una vuelta previa de este mismo lote
+        if (owner->isBuilt()) continue;
 
         int opposite = -1, idxA = -1, idxB = -1;
         for (int i = 0; i < 3; ++i) {
@@ -111,21 +114,54 @@ void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTarge
             else if (v == vb) idxB = i;
             else opposite = v;
         }
-        if (opposite == -1 || idxA == -1 || idxB == -1) continue; // no debería pasar
+        if (opposite == -1 || idxA == -1 || idxB == -1) continue;
 
         owner->markSuperseded();
 
-        // Winding real de (va, vb) dentro de este owner, non-manifold no lo garantiza.
         if ((idxA + 1) % 3 == idxB) {
-            owner->cloneWithVertices(vb, opposite, newVertex);
-            owner->cloneWithVertices(opposite, va, newVertex);
+            owner->cloneWithVertices(va, newVertex, opposite);
+            owner->cloneWithVertices(newVertex, vb, opposite);
         } else {
-            owner->cloneWithVertices(va, opposite, newVertex);
-            owner->cloneWithVertices(opposite, vb, newVertex);
+            owner->cloneWithVertices(vb, newVertex, opposite);
+            owner->cloneWithVertices(newVertex, va, opposite);
         }
     }
+}
+
+void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTargetTriId,
+                             std::queue<int>& pending) {
+    int beforeCount = TriangleCollection::getTriangleCount();
+
+    int newVertex = TemporalVertexRegistry::getOrCreate(point, /*asStrong=*/true, 1.0f);
+    TriangleEdgeSplitSolver::splitTriangleAtInteriorPoint(splitTargetTriId, newVertex);
+    splitEdgeAcrossOwners(va, vb, newVertex);
 
     int afterCount = TriangleCollection::getTriangleCount();
+    for (int newId = beforeCount; newId < afterCount; ++newId) {
+        pending.push(newId);
+    }
+}
+
+// NUEVO: caso "split en 2" — el punto de cruce cae sobre un edge propio de
+// triId. triId es simplemente uno de los dueños de ese edge; se propaga
+// igual que cualquier owner non-manifold (hasta 4 triángulos compartiendo
+// el mismo edge, ej. piso/techo de rooms apiladas).
+void resolveEdgeCrossingSplit(int triId, int edgeIndex, const Vector3& point, std::queue<int>& pending) {
+    AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
+    int ea = tri->getVertex(edgeIndex);
+    int eb = tri->getVertex((edgeIndex + 1) % 3);
+
+    int newVertex = TemporalVertexRegistry::getOrCreate(point, /*asStrong=*/true, 1.0f);
+
+    // Guard: si la cuantización de TemporalVertexRegistry "snapeó" el punto
+    // a un vértice ya existente del propio edge (caso degenerado, punto muy
+    // pegado a un extremo), no hay nada que splitear.
+    if (newVertex == ea || newVertex == eb) return;
+
+    int beforeCount = TriangleCollection::getTriangleCount();
+    splitEdgeAcrossOwners(ea, eb, newVertex);
+    int afterCount = TriangleCollection::getTriangleCount();
+
     for (int newId = beforeCount; newId < afterCount; ++newId) {
         pending.push(newId);
     }
@@ -177,25 +213,24 @@ while (!pending.empty()) {
 
             bool resolvedThisPair = false;
 
-            // ── Detección completa de AMBAS direcciones para este par ──
-            // (edges de otherId contra interior de triId, y viceversa)
             auto crossingsDir1 = detectCrossings(otherId, triId);
             auto crossingsDir2 = detectCrossings(triId, otherId);
 
-            // ── Paso 1 de resolución: encolar TODOS los weak encontrados ──
-            // Esto pasa ANTES de cualquier resolución strong, así un split
-            // ya no puede "comerse" un weak que aparecía después en el loop.
             for (auto& c : crossingsDir1) {
-                if (c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
+                if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
             }
             for (auto& c : crossingsDir2) {
-                if (c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
+                if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
             }
 
-            // ── Paso 2 de resolución: el primer strong encontrado gana ──
-            // (resolverlo muta la malla, así que cualquier otro cruce
-            // detectado en esta misma pasada ya quedó obsoleto)
+            // Primer caso "duro" (Strong interior O edge-on-edge) gana, en ese orden
+            // de aparición dentro de cada lista.
             for (auto& c : crossingsDir1) {
+                if (c.hitEdgeIndex != -1) {
+                    resolveEdgeCrossingSplit(triId, c.hitEdgeIndex, c.point, pending);
+                    resolvedThisPair = true;
+                    break;
+                }
                 if (c.strength == EdgeStrength::Strong) {
                     resolveStrongEdgeSplit(c.va, c.vb, c.point, triId, pending);
                     resolvedThisPair = true;
@@ -204,6 +239,11 @@ while (!pending.empty()) {
             }
             if (!resolvedThisPair) {
                 for (auto& c : crossingsDir2) {
+                    if (c.hitEdgeIndex != -1) {
+                        resolveEdgeCrossingSplit(otherId, c.hitEdgeIndex, c.point, pending);
+                        resolvedThisPair = true;
+                        break;
+                    }
                     if (c.strength == EdgeStrength::Strong) {
                         resolveStrongEdgeSplit(c.va, c.vb, c.point, otherId, pending);
                         resolvedThisPair = true;
@@ -212,7 +252,7 @@ while (!pending.empty()) {
                 }
             }
 
-            if (resolvedThisPair) { triSuperseded = true; break; } // boxA/tri ya no vigentes
+            if (resolvedThisPair) { triSuperseded = true; break; }
         }
     }
 
