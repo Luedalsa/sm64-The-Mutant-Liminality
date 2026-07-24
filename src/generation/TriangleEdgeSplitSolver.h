@@ -64,7 +64,14 @@ public:
 class TriangleEdgeSplitSolver {
 public:
     static bool resolveSingleEdgeIntersection(int triA, int triB);
-  bool flipWeaks(int triA, int triB);
+    bool flipWeaks(int triA, int triB);
+
+    // Resultado de un cruce que cae sobre un edge propio de triId (no interior).
+    struct EdgeIntersection {
+        Vector3 point;
+        int edgeIndex; // 0: (v0,v1)  1: (v1,v2)  2: (v2,v0)
+    };
+
 
 //private:
     static constexpr float kWorldEpsilon = 1.0f;
@@ -72,9 +79,20 @@ public:
 
     static bool segmentCrossesTriangleInterior(const Vector3& p0, const Vector3& p1, int triId, Vector3& outPoint);
 
+    // NUEVO: detecta cruce sobre un edge propio de triId (caso "split en 2").
+    static bool segmentCrossesTriangleEdge(const Vector3& p0, const Vector3& p1, int triId, EdgeIntersection& out);
+
     static EdgeStrength classifyEdge(int ownerTri, int v1, int v2, int& outNeighborTri);
 
     static std::array<int, 3> splitTriangleAtInteriorPoint(int triId, int newVertex);
+
+private:
+    // NUEVO: cálculo baricéntrico compartido entre segmentCrossesTriangleInterior
+    // y segmentCrossesTriangleEdge, para no duplicar la parte del plane-clip.
+    static bool computeBarycentricCrossing(
+        const Vector3& p0, const Vector3& p1, int triId,
+        float& outT, float& outU, float& outV, float& outW, Vector3& outPoint
+    );
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_TRIANGLEEDGESPLITSOLVER_H

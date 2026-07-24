@@ -17,9 +17,6 @@ private:
 
     friend class Vector3;
     Axis(T nv) : v(nv) {
-        if (nv > INT16_MAX || nv < INT16_MIN) {
-            std::cerr << "Axis component must be in the range of int16_t. Value will be truncated on getter. " << std::endl;
-        }
     }
 public:
 
@@ -38,9 +35,6 @@ public:
     }
 
     Axis& operator=(float n) {
-        if (n > INT16_MAX || n < INT16_MIN) {
-            std::cerr << "Axis component must be in the range of int16_t. Value will be truncated on getter. " << std::endl;
-        }
         v = n;
         return *this;
     }

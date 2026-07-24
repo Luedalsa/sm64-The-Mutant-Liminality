@@ -33,8 +33,9 @@ int TemporalVertexRegistry::getOrCreate(const Vector3& p, bool asStrong, float e
     return handle;
 }
 
-bool TriangleEdgeSplitSolver::segmentCrossesTriangleInterior(
-    const Vector3& p0, const Vector3& p1, int triId, Vector3& outPoint
+bool TriangleEdgeSplitSolver::computeBarycentricCrossing(
+    const Vector3& p0, const Vector3& p1, int triId,
+    float& outT, float& outU, float& outV, float& outW, Vector3& outPoint
 ) {
     AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
     const Vector3& a = VertexCollection::getVertex(tri->getVertex(0))->position;
@@ -45,38 +46,74 @@ bool TriangleEdgeSplitSolver::segmentCrossesTriangleInterior(
     float d0 = (p0 - a).dot(n);
     float d1 = (p1 - a).dot(n);
 
-    // Ambos extremos del mismo lado del plano -> no hay cruce.
     if ((d0 > kWorldEpsilon && d1 > kWorldEpsilon) || (d0 < -kWorldEpsilon && d1 < -kWorldEpsilon)) {
         return false;
     }
-    // Segmento (casi) paralelo al plano: caso degenerado, fuera de alcance mínimo.
     if (std::abs(d0 - d1) < 1e-6f) return false;
 
     float t = d0 / (d0 - d1);
-    if (t < 0.0f || t > 1.0f) return false; // el cruce cae fuera del segmento real
+    if (t < 0.0f || t > 1.0f) return false;
 
     Vector3 p = p0 + (p1 - p0) * t;
 
-    // Coordenadas baricéntricas de p respecto a (a,b,c)
     Vector3 v0 = b - a, v1 = c - a, v2 = p - a;
     float d00 = v0.dot(v0), d01 = v0.dot(v1), d11 = v1.dot(v1);
     float d20 = v2.dot(v0), d21 = v2.dot(v1);
     float denom = d00 * d11 - d01 * d01;
-    if (std::abs(denom) < 1e-9f) return false; // triángulo degenerado
+    if (std::abs(denom) < 1e-9f) return false;
 
-    float v = (d11 * d20 - d01 * d21) / denom;
-    float w = (d00 * d21 - d01 * d20) / denom;
-    float u = 1.0f - v - w;
+    outV = (d11 * d20 - d01 * d21) / denom;
+    outW = (d00 * d21 - d01 * d20) / denom;
+    outU = 1.0f - outV - outW;
+    outT = t;
+    outPoint = p;
+    return true;
+}
+
+bool TriangleEdgeSplitSolver::segmentCrossesTriangleInterior(
+    const Vector3& p0, const Vector3& p1, int triId, Vector3& outPoint
+) {
+    float t, u, v, w;
+    Vector3 p;
+    if (!computeBarycentricCrossing(p0, p1, triId, t, u, v, w, p)) return false;
 
     // Interior ESTRICTO: si cae sobre un edge propio de triId (u, v o w ~ 0),
-    // lo descartamos aquí a propósito -> ese es el caso "split en 2", fuera
-    // de alcance de esta versión mínima.
+    // ese caso ahora lo maneja segmentCrossesTriangleEdge por separado.
     if (u > kBaryMargin && v > kBaryMargin && w > kBaryMargin) {
         outPoint = p;
         return true;
     }
     return false;
 }
+
+bool TriangleEdgeSplitSolver::segmentCrossesTriangleEdge(
+    const Vector3& p0, const Vector3& p1, int triId, EdgeIntersection& out
+) {
+    float t, u, v, w;
+    Vector3 p;
+    if (!computeBarycentricCrossing(p0, p1, triId, t, u, v, w, p)) return false;
+
+    bool nearU = u <= kBaryMargin;
+    bool nearV = v <= kBaryMargin;
+    bool nearW = w <= kBaryMargin;
+    int nearCount = (nearU ? 1 : 0) + (nearV ? 1 : 0) + (nearW ? 1 : 0);
+
+    // Exactamente una coordenada ~0 -> punto en el INTERIOR de un edge propio
+    // de triId (ni vértice -> 2 coords en 0-, ni cara interior -> 0 coords en 0).
+    if (nearCount != 1) return false;
+
+    // Cualquier coordenada negativa más allá del margen implica que el punto
+    // cae fuera del segmento del edge (extensión de la recta, no el edge real).
+    if (u < -kBaryMargin || v < -kBaryMargin || w < -kBaryMargin) return false;
+
+    out.point = p;
+    if (nearW)      out.edgeIndex = 0; // edge (v0, v1)
+    else if (nearU) out.edgeIndex = 1; // edge (v1, v2)
+    else            out.edgeIndex = 2; // edge (v2, v0)
+
+    return true;
+}
+
 
 EdgeStrength TriangleEdgeSplitSolver::classifyEdge(int ownerTri, int v1, int v2, int& outNeighborTri) {
     outNeighborTri = -1;
