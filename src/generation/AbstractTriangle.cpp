@@ -7,11 +7,10 @@
 #include "AbstractTriangle.h"
 #include "AbstractVertex.h"
 
-#include <map>
-
-AbstractTriangle::AbstractTriangle(int v1,
-                                   int v2,
-                                   int v3)
+AbstractTriangle::AbstractTriangle(int v1, int v2, int v3,
+                                    TriangleFaceType frontType_,
+                                    TriangleFaceType backType_)
+    : frontType(frontType_), backType(backType_)
 {
     vertices[0] = v1;
     vertices[1] = v2;
@@ -69,67 +68,6 @@ void AbstractTriangle::build() {
     TriangleTypeRegistry::build(frontType, trianglesToBuild);
 }
 
-void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
-    std::map<int, int> localVertexSegment;
-    std::vector<std::array<int, 3>> localTriangleSegment;
-    std::vector<DisplayVertex> displayVertices;
-    int currentVertex = 0;
-    for (auto n : neighbours) {
-        auto tri = TriangleCollection::getTriangle(n);
-        AbstractVertex* vertexa = VertexCollection::getVertex(tri->getVertex(0));
-        AbstractVertex* vertexb = VertexCollection::getVertex(tri->getVertex(1));
-        AbstractVertex* vertexc = VertexCollection::getVertex(tri->getVertex(2));
-        int vv1 = vertexa->getCollisionVertex();
-        int vv2 = vertexb->getCollisionVertex();
-        int vv3 = vertexc->getCollisionVertex();
-        CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_DEFAULT);
-
-        for (int i = 0; i < 3; ++i) {
-            int v = tri->getVertex(i);
-            if (localVertexSegment.find(v) == localVertexSegment.end()) {
-                localVertexSegment[v] = currentVertex++;
-                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, { static_cast<float>(std::rand()), static_cast<float>(std::rand()), static_cast<float>(std::rand())}});
-            }
-        }
-        localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
-    }
-
-    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, inside_09004000);
-}
-
-
-void LavaTriangle::buildGeometry(std::vector<int>& neighbours) {
-    std::map<int, int> localVertexSegment;
-    std::vector<std::array<int, 3>> localTriangleSegment;
-    std::vector<DisplayVertex> displayVertices;
-    int currentVertex = 0;
-    for (auto n : neighbours) {
-        auto tri = TriangleCollection::getTriangle(n);
-        AbstractVertex* vertexa = VertexCollection::getVertex(tri->getVertex(0));
-        AbstractVertex* vertexb = VertexCollection::getVertex(tri->getVertex(1));
-        AbstractVertex* vertexc = VertexCollection::getVertex(tri->getVertex(2));
-        int vv1 = vertexa->getCollisionVertex();
-        int vv2 = vertexb->getCollisionVertex();
-        int vv3 = vertexc->getCollisionVertex();
-        CollisionManager::addCollisionTriangle(vv1, vv2, vv3, SURFACE_BURNING);
-
-        for (int i = 0; i < 3; ++i) {
-            int v = tri->getVertex(i);
-            if (localVertexSegment.find(v) == localVertexSegment.end()) {
-                localVertexSegment[v] = currentVertex++;
-                displayVertices.push_back({VertexCollection::getVertex(v)->position, 0, VertexCollection::getVertex(v)->position.x, VertexCollection::getVertex(v)->position.z, { static_cast<float>(std::rand()), static_cast<float>(std::rand()), static_cast<float>(std::rand())}});
-            }
-        }
-        localTriangleSegment.push_back({localVertexSegment[tri->getVertex(0)], localVertexSegment[tri->getVertex(1)], localVertexSegment[tri->getVertex(2)]});
-    }
-
-    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, fire_09009000);
-}
-
-int CheckerboardFloorTriangle::cloneWithVertices(int v1, int v2, int v3) const {
-    return TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v2, v3);
-}
-
-int LavaTriangle::cloneWithVertices(int v1, int v2, int v3) const {
-    return TriangleCollection::createTriangle<LavaTriangle>(v1, v2, v3);
+int AbstractTriangle::cloneWithVertices(int v1, int v2, int v3) const {
+    return TriangleCollection::createTriangle(v1, v2, v3, frontType, backType);
 }

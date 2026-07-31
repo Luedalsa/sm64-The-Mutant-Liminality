@@ -20,7 +20,6 @@ class TriangleCollection {
     static std::deque<std::unique_ptr<AbstractTriangle>> triangles;
 
 public:
-
     static int getTriangleCount() { return static_cast<int>(triangles.size()); }
 
     static void forEachTriangleIntersectingBox(
@@ -28,17 +27,14 @@ public:
         const Vec3f boxEnd,
         std::function<void(const AbstractTriangle&)> callback
     );
-    template <class T = AbstractTriangle, class... Args> static int createTriangle(Args &&...args);
 
-    static AbstractTriangle* getTriangle(int t) {
-        return triangles[t].get();
-    };
-    // TriangleCollection.h — agregar
-    static void markSuperseded(int triangleId) {
-        getTriangle(triangleId)->markSuperseded();
-    }
+    static int createTriangle(int v1, int v2, int v3,
+                               TriangleFaceType frontType,
+                               TriangleFaceType backType = TriangleFaceType::None);
+
+    static AbstractTriangle* getTriangle(int t) { return triangles[t].get(); }
+
+    static void markSuperseded(int triangleId) { getTriangle(triangleId)->markSuperseded(); }
 };
-
-#include "TriangleCollection.tpp"
 
 #endif // SM64_PORT_TRIANGLECOLLECTION_H

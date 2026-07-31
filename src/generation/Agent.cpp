@@ -31,7 +31,9 @@ void DebugAgent2::grow() {
         top[i]    = Vector3(x, yTop, z);
     }
 
-    auto floorFactory = [](int a, int b, int c) { return TriangleCollection::createTriangle<CheckerboardFloorTriangle>(a, b, c); };
+    auto floorFactory = [](int a, int b, int c) {
+        return TriangleCollection::createTriangle(a, b, c, TriangleFaceType::CheckerboardFloor);
+    };
 
     // Piso (normal +y, hacia arriba, adentro del prisma): abanico desde vértice 0, orden CW.
     for (int i = 1; i < kSides - 1; ++i) {
@@ -74,28 +76,28 @@ void DebugAgent::grow() {
     // --- TRIÁNGULOS ---
     // Cara Inferior (Base)
 
-    TriangleCollection::createTriangle<LavaTriangle>(v1, v2, v3);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v2, v4);
+    TriangleCollection::createTriangle(v1, v2, v3, TriangleFaceType::Lava);
+    TriangleCollection::createTriangle(v3, v2, v4, TriangleFaceType::CheckerboardFloor);
 
     // Cara Frontal (Z = -3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v4, v2, v5);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v4, v5, v6);
+    TriangleCollection::createTriangle(v4, v2, v5, TriangleFaceType::CheckerboardFloor);
+    TriangleCollection::createTriangle(v4, v5, v6, TriangleFaceType::CheckerboardFloor);
 
     // Cara Superior (Techo)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v6, v5, v8);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v6, v8, v7);
+    TriangleCollection::createTriangle(v6, v5, v8, TriangleFaceType::CheckerboardFloor);
+    TriangleCollection::createTriangle(v6, v8, v7, TriangleFaceType::CheckerboardFloor);
 
     // Cara Trasera (Z = 3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v3, v7);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v1, v7, v8);
+    TriangleCollection::createTriangle(v1, v3, v7, TriangleFaceType::CheckerboardFloor);
+    TriangleCollection::createTriangle(v1, v7, v8, TriangleFaceType::CheckerboardFloor);
 
     // Cara Izquierda (X = -3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v4, v6);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v3, v6, v7);
+    TriangleCollection::createTriangle(v3, v4, v6, TriangleFaceType::CheckerboardFloor);
+    TriangleCollection::createTriangle(v3, v6, v7, TriangleFaceType::CheckerboardFloor);
 
     // Cara Derecha (X = 3000)
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v1, v8);
-    TriangleCollection::createTriangle<CheckerboardFloorTriangle>(v2, v8, v5);
+    TriangleCollection::createTriangle(v2, v1, v8, TriangleFaceType::CheckerboardFloor);
+    TriangleCollection::createTriangle(v2, v8, v5, TriangleFaceType::CheckerboardFloor);
 
     AgentManager::createBabyAgent(*new DebugAgent2(SurfaceTransform{1, 0.25, 0.25, {0, 0, -1}}));
 }
