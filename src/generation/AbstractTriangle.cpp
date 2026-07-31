@@ -51,7 +51,7 @@ void AbstractTriangle::build() {
 
         if (neighbor == this) continue;
 
-        if (typeid(*neighbor) == typeid(*this)) {
+        if (neighbor->frontType == frontType && neighbor->backType == backType) {
             if (neighbor->built) continue;
             neighbor->built = true;
             trianglesToBuild.push_back(t);
