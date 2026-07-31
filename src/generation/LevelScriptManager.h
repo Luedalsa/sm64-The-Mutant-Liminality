@@ -13,6 +13,7 @@
 #include "TriangleCollection.h"
 #include "textures.h"
 #include "actors/group15.h"
+#include "macro_preset_names.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -321,7 +322,7 @@ class LevelScriptManager {
                 WARP_NODE(/*id*/ 0xF1, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x03, /*flags*/ WARP_NO_CHECKPOINT),
                 TERRAIN(/*terrainData*/ buildTerrain()),
                 ROOMS(/*surfaceRooms*/ buildRooms()),
-                MACRO_OBJECTS(/*objList*/ inside_castle_seg7_area_1_macro_objs),
+                MACRO_OBJECTS(/*objList*/ buildMacroObjects()),
                 SET_BACKGROUND_MUSIC(/*settingsPreset*/ 0x0001, /*seq*/ SEQ_LEVEL_KOOPA_ROAD),
                 TERRAIN_TYPE(/*terrainType*/ TERRAIN_STONE),
             END_AREA(),
