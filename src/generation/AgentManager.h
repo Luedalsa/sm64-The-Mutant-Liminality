@@ -16,7 +16,7 @@ class AgentManager {
 
 public:
     static void setup() {
-        "Hi";
+        registerBuiltinTriangleTypes();
     }
 
     static void start();
