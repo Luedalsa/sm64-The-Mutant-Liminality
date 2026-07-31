@@ -16,6 +16,7 @@ AbstractTriangle::AbstractTriangle(int v1,
     vertices[0] = v1;
     vertices[1] = v2;
     vertices[2] = v3;
+    active = true;
 
     const auto & a = VertexCollection::getVertex(v1)->position;
     const auto & b = VertexCollection::getVertex(v2)->position;
