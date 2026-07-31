@@ -180,7 +180,7 @@ void TriangleOverlapSolver::resolve(const std::vector<AgentTriangleRequest>& req
 
         int id = r.factory
             ? r.factory(a, b, c)
-            : TriangleCollection::createTriangle<CheckerboardFloorTriangle>(a, b, c);
+            : TriangleCollection::createTriangle(a, b, c, TriangleFaceType::CheckerboardFloor);
 
         committed.push_back(id);
     }
