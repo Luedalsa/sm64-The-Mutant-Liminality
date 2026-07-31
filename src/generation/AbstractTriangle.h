@@ -51,6 +51,11 @@ public:
 
     const Vector3& getNormal() const { return normal; }
 
+    TriangleFaceType getFrontType() const { return frontType; }
+    TriangleFaceType getBackType() const { return backType; }
+
+    void setBackType(TriangleFaceType t) { backType = t; }
+
     void markSuperseded() { built = true; }
 
     virtual int cloneWithVertices(int v1, int v2, int v3) const = 0;
