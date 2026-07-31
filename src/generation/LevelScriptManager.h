@@ -200,6 +200,19 @@ class LevelScriptManager {
         return newObjects;
     }
 
+    static MacroObject* buildMacroObjects() {
+        auto coins = ActorSpawnerManager::getCoins();
+        auto newMacroObjects = LevelPoolManager::allocOnPool<MacroObject>(coins.size() * 6 + 1);
+
+        auto p = newMacroObjects;
+
+        for (auto& o : coins) {
+            writeMacro(p, MACRO_OBJECT(/*preset*/ macro_yellow_coin_2,      /*yaw*/   0, /*pos*/ o[0], o[1],  o[2]));
+        }
+        writeMacro(p, MACRO_OBJECT_END());
+        return newMacroObjects;
+    }
+
     static LevelScript* buildLevelScript() {
         LevelScript scriptData[] = {
             INIT_LEVEL(),
