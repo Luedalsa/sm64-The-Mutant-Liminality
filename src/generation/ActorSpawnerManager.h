@@ -10,6 +10,7 @@
 class ActorSpawnerManager {
     static std::vector<std::array<int, 4>> doors;
     static std::vector<std::array<int, 3>> goombas;
+    static std::vector<std::array<int, 3>> coins;
 public:
     static void spawnSpecialDoor(int x, int y, int z, int yaw) {
         doors.push_back({x, y, z, yaw});
@@ -19,12 +20,20 @@ public:
         goombas.push_back({x, y, z});
     }
 
+    static void spawnCoin(int x, int y, int z) {
+        coins.push_back({x, y, z});
+    }
+
     static const std::vector<std::array<int, 4>>& getSpecialDoors() {
         return doors;
     }
 
     static const std::vector<std::array<int, 3>>& getGoombas() {
         return goombas;
+    }
+
+    static const std::vector<std::array<int, 3>>& getCoins() {
+        return coins;
     }
 };
 
