@@ -2,6 +2,7 @@
 #define SM64_PORT_ABSTRACTTRIANGLE_H
 
 #include "AbstractVertex.h"
+#include "TriangleTypes.h"
 
 class AbstractVertex;
 class LevelScriptManager;
@@ -33,8 +34,8 @@ class AbstractTriangle {
     bool built = false;
     int selfIndex = -1;
 
-protected:
-    AbstractTriangle(int v1, int v2, int v3);
+    TriangleFaceType frontType = TriangleFaceType::None;
+    TriangleFaceType backType  = TriangleFaceType::None;
 
     friend class TriangleCollection;
 
