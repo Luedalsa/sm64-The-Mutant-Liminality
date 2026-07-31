@@ -66,7 +66,7 @@ void AbstractTriangle::build() {
         }
     }
 
-    buildGeometry(trianglesToBuild);
+    TriangleTypeRegistry::build(frontType, trianglesToBuild);
 }
 
 void CheckerboardFloorTriangle::buildGeometry(std::vector<int>& neighbours) {
