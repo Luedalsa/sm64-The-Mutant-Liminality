@@ -64,4 +64,9 @@ void registerBuiltinTriangleTypes() {
 
     TriangleTypeRegistry::registerType(TriangleFaceType::Lava,
         [](std::vector<int>& neighbours) { buildFlatGeometry(neighbours, SURFACE_BURNING, fire_09009000); });
+
+TriangleTypeRegistry::registerType(TriangleFaceType::InsideWallFirstFloor,
+    [](std::vector<int>& neighbours) {
+        buildFlatGeometry(neighbours, SURFACE_DEFAULT, inside_09001000);
+    });
 }
