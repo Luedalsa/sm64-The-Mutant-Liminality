@@ -5,18 +5,13 @@
 #ifndef SM64_THE_MUTANT_LIMINALITY_DISPLAYLISTMANAGER_H
 #define SM64_THE_MUTANT_LIMINALITY_DISPLAYLISTMANAGER_H
 
-#include "CollisionManager.h"
 #include "LevelPoolManager.h"
-#include "VertexCollection.h"
 #include "TriangleCollection.h"
 #include "textures.h"
-#include "actors/group15.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #include <vector>
-#include <queue>
 #include <stdexcept>
 
 // SM64: The Mutant Liminality. Procedural Geometry Generation.
@@ -25,33 +20,7 @@
 extern "C" {
 #include <ultra64.h>
 
-#include "types.h"
-
-#include "model_ids.h"
-#include "seq_ids.h"
-#include "dialog_ids.h"
-
-#include "game/level_update.h"
-
-#include "levels/scripts.h"
-
-#include "actors/common1.h"
-
-#include "behavior_data.h"
-#include "../game/camera.h"
-#include "geo_commands.h"
-#include "../game/geo_misc.h"
-
 #include "level_commands.h"
-#include "../game/level_geo.h"
-#include "level_misc_macros.h"
-#include "sm64.h"
-#include "special_preset_names.h"
-#include "levels/castle_inside/header.h"
-#include "surface_terrains.h"
-#include "actors/common0.h"
-#include "actors/group10.h"
-#include "actors/group9.h"
 
 } // extern "C"
 
