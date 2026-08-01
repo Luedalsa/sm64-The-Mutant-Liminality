@@ -13,6 +13,7 @@ enum class TriangleFaceType : uint8_t {
     None = 0,
     CheckerboardFloor,
     Lava,
+    InsideWallFirstFloor,
     Count
 };
 
