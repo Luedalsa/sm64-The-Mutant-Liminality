@@ -190,7 +190,8 @@ class LevelScriptManager {
     static LevelScript* buildObjects() {
         auto goombas = ActorSpawnerManager::getGoombas();
         auto toads = ActorSpawnerManager::getToads();
-        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(6 + goombas.size() * 6 + toads.size() * 10 + 1);
+        auto oneUps = ActorSpawnerManager::getOneUps();
+        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(6 + goombas.size() * 6 + toads.size() * 10 + oneUps.size() * 6 + 1);
 
         auto p = newObjects;
 
@@ -199,6 +200,9 @@ class LevelScriptManager {
         }
         for (auto& o : toads) {
             writeMacro(p, OBJECT(/*model*/ MODEL_TOAD,       /*pos*/  o[0], o[1],  o[2], /*angle*/ 0,   o[3], 0, /*behParam*/ o[4] << 24, /*beh*/ bhvToadMessage));
+        }
+        for (auto& o : oneUps) {
+            writeMacro(p, OBJECT(/*model*/ MODEL_1UP,                         /*pos*/  o[0], o[1],  o[2], /*angle*/ 0,   0, 0, /*behParam*/ 0x00000000, /*beh*/ bhv1Up         ));
         }
         writeMacro(p, RETURN());
         return newObjects;
