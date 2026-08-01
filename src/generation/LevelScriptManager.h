@@ -191,7 +191,8 @@ class LevelScriptManager {
         auto goombas = ActorSpawnerManager::getGoombas();
         auto toads = ActorSpawnerManager::getToads();
         auto oneUps = ActorSpawnerManager::getOneUps();
-        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(6 + goombas.size() * 6 + toads.size() * 10 + oneUps.size() * 6 + 1);
+        auto warpPipes = ActorSpawnerManager::getWarpPipes();
+        auto newObjects = LevelPoolManager::allocOnPool<LevelScript>(6 + goombas.size() * 6 + toads.size() * 10 + oneUps.size() * 6 + warpPipes.size() * 8 + 1);
 
         auto p = newObjects;
 
@@ -203,6 +204,9 @@ class LevelScriptManager {
         }
         for (auto& o : oneUps) {
             writeMacro(p, OBJECT(/*model*/ MODEL_1UP,                         /*pos*/  o[0], o[1],  o[2], /*angle*/ 0,   0, 0, /*behParam*/ 0x00000000, /*beh*/ bhv1Up         ));
+        }
+        for (auto& o : warpPipes) {
+            writeMacro(p, OBJECT(/*model*/ MODEL_CASTLE_GROUNDS_WARP_PIPE,                         /*pos*/  o[0], o[1],  o[2], /*angle*/ 0,   0, 0, /*behParam*/ 0x00000000, /*beh*/ bhvWarpPipe         ));
         }
         writeMacro(p, RETURN());
         return newObjects;
@@ -253,6 +257,7 @@ class LevelScriptManager {
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_50_STARS, castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_70_STARS, castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_GOOMBA,                      goomba_geo),
+            LOAD_MODEL_FROM_GEO(MODEL_CASTLE_GROUNDS_WARP_PIPE,    warp_pipe_geo),
 
             AREA(/*index*/ 1, buildGeoLayout()),
                 JUMP_LINK(buildObjects()),
