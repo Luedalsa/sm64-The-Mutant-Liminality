@@ -256,8 +256,8 @@ class LevelScriptManager {
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_8_STARS,  castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_50_STARS, castle_geo_000F00),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_STAR_DOOR_70_STARS, castle_geo_000F00),
-            LOAD_MODEL_FROM_GEO(MODEL_GOOMBA,                      goomba_geo),
             LOAD_MODEL_FROM_GEO(MODEL_CASTLE_GROUNDS_WARP_PIPE,    warp_pipe_geo),
+            JUMP_LINK(script_func_global_1),
 
             AREA(/*index*/ 1, buildGeoLayout()),
                 JUMP_LINK(buildObjects()),
