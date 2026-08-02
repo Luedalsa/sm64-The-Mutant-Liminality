@@ -34,6 +34,12 @@ void DebugAgent2::grow() {
     auto floorFactory = [](int a, int b, int c) {
         return TriangleCollection::createTriangle(a, b, c, TriangleFaceType::CheckerboardFloor);
     };
+    auto wallFactory = [](int a, int b, int c) {
+        return TriangleCollection::createTriangle(a, b, c, TriangleFaceType::InsideWallFirstFloor);
+    };
+    auto roofFactory = [](int a, int b, int c) {
+        return TriangleCollection::createTriangle(a, b, c, TriangleFaceType::InsideRoofFirstFloor);
+    };
 
     // Piso (normal +y, hacia arriba, adentro del prisma): abanico desde vértice 0, orden CW.
     for (int i = 1; i < kSides - 1; ++i) {
@@ -42,14 +48,14 @@ void DebugAgent2::grow() {
 
     // Techo (normal -y, hacia abajo, adentro del prisma): abanico desde vértice 0, orden CCW.
     for (int i = 1; i < kSides - 1; ++i) {
-        prismFaces.push_back({top[0], top[i], top[i + 1], floorFactory});
+        prismFaces.push_back({top[0], top[i], top[i + 1], roofFactory});
     }
 
     // Paredes laterales (normal hacia el centro del octágono, adentro del prisma).
     for (int i = 0; i < kSides; ++i) {
         int next = (i + 1) % kSides;
-        prismFaces.push_back({bottom[i], bottom[next], top[next], floorFactory});
-        prismFaces.push_back({bottom[i], top[next], top[i], floorFactory});
+        prismFaces.push_back({bottom[i], bottom[next], top[next], wallFactory});
+        prismFaces.push_back({bottom[i], top[next], top[i], wallFactory});
     }
 
     TriangleOverlapSolver::resolve(prismFaces);
