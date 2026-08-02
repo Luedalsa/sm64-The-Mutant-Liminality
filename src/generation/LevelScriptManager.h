@@ -214,13 +214,26 @@ class LevelScriptManager {
 
     static MacroObject* buildMacroObjects() {
         auto coins = ActorSpawnerManager::getCoins();
-        auto newMacroObjects = LevelPoolManager::allocOnPool<MacroObject>(coins.size() * 6 + 1);
+        auto vanishCaps = ActorSpawnerManager::getVanishCaps();
+        auto wingCaps = ActorSpawnerManager::getWingCaps();
+        auto metalCaps = ActorSpawnerManager::getMetalCaps();
+        auto newMacroObjects = LevelPoolManager::allocOnPool<MacroObject>(coins.size() * 6 + vanishCaps.size() * 6 + wingCaps.size() * 6 + metalCaps.size() * 6 + 1);
 
         auto p = newMacroObjects;
 
         for (auto& o : coins) {
             writeMacro(p, MACRO_OBJECT(/*preset*/ macro_yellow_coin_2,      /*yaw*/   0, /*pos*/ o[0], o[1],  o[2]));
         }
+        for (auto& o : vanishCaps) {
+            writeMacro(p, MACRO_OBJECT(/*preset*/ macro_box_vanish_cap,      /*yaw*/   0, /*pos*/ o[0], o[1],  o[2]));
+        }
+        for (auto& o : wingCaps) {
+            writeMacro(p, MACRO_OBJECT(/*preset*/ macro_box_wing_cap,      /*yaw*/   0, /*pos*/ o[0], o[1],  o[2]));
+        }
+        for (auto& o : metalCaps) {
+            writeMacro(p, MACRO_OBJECT(/*preset*/ macro_box_metal_cap,      /*yaw*/   0, /*pos*/ o[0], o[1],  o[2]));
+        }
+
         writeMacro(p, MACRO_OBJECT_END());
         return newMacroObjects;
     }
