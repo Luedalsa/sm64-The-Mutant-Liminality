@@ -74,4 +74,9 @@ TriangleTypeRegistry::registerType(TriangleFaceType::InsideWallFirstFloor,
     [](std::vector<int>& neighbours) {
         buildFlatGeometry(neighbours, SURFACE_DEFAULT, inside_09008000);
     });
+
+    TriangleTypeRegistry::registerType(TriangleFaceType::InsideWallWood,
+    [](std::vector<int>& neighbours) {
+        buildFlatGeometry(neighbours, SURFACE_DEFAULT, inside_09003800);
+    });
 }

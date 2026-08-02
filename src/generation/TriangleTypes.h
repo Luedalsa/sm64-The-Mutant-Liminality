@@ -15,6 +15,7 @@ enum class TriangleFaceType : uint8_t {
     Lava,
     InsideWallFirstFloor,
     InsideRoofFirstFloor,
+    InsideWallWood,
     Count
 };
 
