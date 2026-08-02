@@ -1,12 +1,8 @@
 #include "behavior_data.h"
-#include "../game/debug_course.h"
 
-#include <cstring>
 #include <utility>
-#include <vector>
 #include "level_commands.h"
 #include "engine/surface_collision.h"
-#include "levels/castle_inside/header.h"
 #include "AgentManager.h"
 #include "DebugExport.h"
 #include "LevelScriptManager.h"
@@ -20,27 +16,10 @@ inline int CASTLE_SEED = 0xDEADBEEF;
 extern "C" {
 #include <ultra64.h>
 #include "castle_init.h"
-#include <level_misc_macros.h>
-#include <special_preset_names.h>
-#include <textures.h>
 #include <geo_commands.h>
 
-#include "game/level_geo.h"
-#include "game/geo_misc.h"
+#include "game/save_file.h"
 #include "types.h"
-
-#include "sm64.h"
-#include "../game/camera.h"
-
-#include "model_ids.h"
-#include "seq_ids.h"
-#include "dialog_ids.h"
-
-#include "game/level_update.h"
-
-#include "levels/scripts.h"
-
-#include "actors/common1.h"
 
 } // extern "C"
 
@@ -62,6 +41,8 @@ extern "C" u8 dialog_text_DIALOG_133[5000] = { DIALOG_CHAR_TERMINATOR };
 
 s32 castle_init(s16 arg, s32 unused) {
     CASTLE_SEED = 0;
+
+    save_file_set_flags(SAVE_FLAG_HAVE_WING_CAP | SAVE_FLAG_HAVE_METAL_CAP | SAVE_FLAG_HAVE_VANISH_CAP);
 
     std::string s = "Hello, Mario... \n The castle keeps \n changing? What are you \n talking about? it \n always looked like this \n [GENERATD BY SEED" + std::to_string(CASTLE_SEED) + "]\n";
 
