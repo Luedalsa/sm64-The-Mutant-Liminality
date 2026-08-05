@@ -1,7 +1,4 @@
-//
-// Created by Luis Alvarez on 19/06/2026.
-//
-
+// src/generation/Agent.h
 #ifndef SM64_PORT_AGENT_H
 #define SM64_PORT_AGENT_H
 #include "VertexCollection.h"
@@ -9,6 +6,7 @@
 #include "AbstractVertex.h"
 #include "AgentManager.h"
 #include "Primitives.h"
+#include "Gene.h"
 
 extern "C" {
 #include "engine/math_util.h"
@@ -24,56 +22,26 @@ extern "C" {
 
 #include <cmath>
 
+// ─────────────────────────────────────────────────────────────────
+// Agent
+//
+// Nace en una posición del mundo con un Gen heredado (stub por ahora).
+// Al crecer: invoca un Prism (que crea sus triángulos directamente en
+// TriangleCollection) y manda los IDs resultantes a TriangleOverlapSolver
+// para que se resuelvan contra la geometría existente.
+// ─────────────────────────────────────────────────────────────────
 class Agent {
-
-    void getLocalBasis(Vector3& right, Vector3& up, Vector3& forward) const {
-        up = Vector3(0, 1, 0);
-
-        Vector3 inheritedForward = birthPosition.forward;
-        Vector3 flatForward(inheritedForward.x, 0, inheritedForward.z);
-
-        Vector3 reference = (flatForward.length() > 0.0001f)
-                           ? flatForward.normalized()
-                           : Vector3(0, 0, -1);
-
-        right   = reference.cross(up).normalized();
-        forward = right.cross(up).normalized();
-    }
 protected:
-    SurfaceTransform birthPosition;
+    Vector3 position;
+    Gene gene;
 
 public:
-    explicit Agent(const SurfaceTransform& transform) : birthPosition(transform) {}
+    Agent(const Vector3& position, const Gene& gene)
+        : position(position), gene(gene) {}
     virtual ~Agent() = default;
     int energy = 0;
 
-    virtual void grow() = 0;
-
-    int createLocalVertex(Vector3 v) {
-        Vector3 right, up, forward;
-        getLocalBasis(right, up, forward);
-
-        Vector3 worldPos = birthPosition.getUVPosition()
-                          + right   * v.x
-                          + up      * v.y
-                          + forward * v.z;
-
-        return VertexCollection::createVertex(worldPos);
-    }
-};
-
-class DebugAgent2 : public Agent {
-public:
-    DebugAgent2(const SurfaceTransform &transform) : Agent(transform) {energy = 3;};
-    ~DebugAgent2() override = default;
-    void grow() override;
-};
-
-class DebugAgent : public Agent {
-public:
-    DebugAgent(const SurfaceTransform &transform) : Agent(transform) {energy = 3;};
-    ~DebugAgent() override = default;
-    void grow() override;
+    void grow();
 };
 
 #endif // SM64_PORT_AGENT_H

@@ -1,8 +1,9 @@
+// src/generation/TriangleOverlapSolver.cpp
 //
 // Created by Luis Alvarez on 09/07/2026.
 // Reescrito 19/07/2026 para integrar TriangleEdgeSplitSolver.
+// Reescrito 04/08/2026: ya no crea vértices/triángulos, los recibe hechos.
 //
-// TriangleOverlapSolver.cpp
 
 #include "TriangleOverlapSolver.h"
 
@@ -15,10 +16,6 @@
 
 namespace {
 
-// Broad-phase ingenuo: bounding box de los 3 vértices con un pequeño margen.
-// TODO: reemplazar por VertexCollection/TriangleCollection::forEachTriangleIntersectingBox
-// cuando dejen de ser stubs (ver code review anterior) — esto es O(n^2) por diseño,
-// aceptable para el minimal path pero no para niveles grandes.
 struct AABB { Vector3 lo, hi; };
 
 AABB triangleBounds(int triId, float margin = 1.0f) {
@@ -87,10 +84,6 @@ std::vector<EdgeCrossing> detectCrossings(int edgeOwnerId, int interiorTriId) {
     return crossings;
 }
 
-// Split-en-2 propagado a TODOS los dueños non-manifold del edge (va,vb),
-// sin tocar la cola pending — el llamador decide qué encolar.
-// Extraído de resolveStrongEdgeSplit para reusarlo también en el caso
-// edge-on-edge (resolveEdgeCrossingSplit).
 void splitEdgeAcrossOwners(int va, int vb, int newVertex) {
     std::vector<int> owners;
     const auto& trisV1 = VertexCollection::getVertex(va)->connectingTriangles;
@@ -142,10 +135,6 @@ void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTarge
     }
 }
 
-// NUEVO: caso "split en 2" — el punto de cruce cae sobre un edge propio de
-// triId. triId es simplemente uno de los dueños de ese edge; se propaga
-// igual que cualquier owner non-manifold (hasta 4 triángulos compartiendo
-// el mismo edge, ej. piso/techo de rooms apiladas).
 void resolveEdgeCrossingSplit(int triId, int edgeIndex, const Vector3& point, std::queue<int>& pending) {
     AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
     int ea = tri->getVertex(edgeIndex);
@@ -153,9 +142,6 @@ void resolveEdgeCrossingSplit(int triId, int edgeIndex, const Vector3& point, st
 
     int newVertex = TemporalVertexRegistry::getOrCreate(point, /*asStrong=*/true, 1.0f);
 
-    // Guard: si la cuantización de TemporalVertexRegistry "snapeó" el punto
-    // a un vértice ya existente del propio edge (caso degenerado, punto muy
-    // pegado a un extremo), no hay nada que splitear.
     if (newVertex == ea || newVertex == eb) return;
 
     int beforeCount = TriangleCollection::getTriangleCount();
@@ -169,94 +155,72 @@ void resolveEdgeCrossingSplit(int triId, int edgeIndex, const Vector3& point, st
 
 } // namespace
 
-void TriangleOverlapSolver::resolve(const std::vector<AgentTriangleRequest>& requested) {
+void TriangleOverlapSolver::resolve(const std::vector<int>& committed) {
 
-    std::vector<int> committed;
-    committed.reserve(requested.size());
-    for (const auto& r : requested) {
-        int a = VertexCollection::createVertex(r.v0);
-        int b = VertexCollection::createVertex(r.v1);
-        int c = VertexCollection::createVertex(r.v2);
-
-        int id = r.factory
-            ? r.factory(a, b, c)
-            : TriangleCollection::createTriangle(a, b, c, TriangleFaceType::CheckerboardFloor);
-
-        committed.push_back(id);
-    }
-
-    // ── Paso 2: cola de conflictos pendientes ──
-    // Empezamos con lo recién comprometido. Cada vez que una resolución
-    // (split o flip) genera triángulos nuevos, los volvemos a encolar,
-    // porque ellos también pueden entrar en conflicto con el resto.
     std::queue<int> pending;
     std::queue<std::array<int, 2>> sleepIsForTheWeak;
     for (int id : committed) pending.push(id);
 while (!pending.empty()) {
-        int triId = pending.front();
-        pending.pop();
+    int triId = pending.front();
+    pending.pop();
 
-        AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
-        if (tri->isBuilt()) continue;
+    AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
+    if (tri->isBuilt()) continue;
 
-        AABB boxA = triangleBounds(triId);
-        int total = TriangleCollection::getTriangleCount();
+    AABB boxA = triangleBounds(triId);
+    int total = TriangleCollection::getTriangleCount();
 
-        bool triSuperseded = false;
+    for (int otherId = 0; otherId < total; ++otherId) {
+        if (otherId == triId) continue;
 
-        for (int otherId = 0; otherId < total; ++otherId) {
-            if (otherId == triId) continue;
+        AbstractTriangle* other = TriangleCollection::getTriangle(otherId);
+        if (other->isBuilt()) continue;
+        if (!aabbOverlap(boxA, triangleBounds(otherId))) continue;
 
-            AbstractTriangle* other = TriangleCollection::getTriangle(otherId);
-            if (other->isBuilt()) continue;
-            if (!aabbOverlap(boxA, triangleBounds(otherId))) continue;
+        auto crossingsDir1 = detectCrossings(otherId, triId);
+        auto crossingsDir2 = detectCrossings(triId, otherId);
 
-            bool resolvedThisPair = false;
+        // Los Weak solo se registran para la fase diferida. NO cortan la búsqueda.
+        for (auto& c : crossingsDir1)
+            if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak)
+                sleepIsForTheWeak.push({c.va, c.vb});
+        for (auto& c : crossingsDir2)
+            if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak)
+                sleepIsForTheWeak.push({c.va, c.vb});
 
-            auto crossingsDir1 = detectCrossings(otherId, triId);
-            auto crossingsDir2 = detectCrossings(triId, otherId);
+        // Buscamos un Strong real. Solo esto justifica cortar el loop de otherId,
+        // porque solo esto deja a triId superseded (y por lo tanto "terminado").
+        bool resolvedStrong = false;
 
-            for (auto& c : crossingsDir1) {
-                if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
+        for (auto& c : crossingsDir1) {
+            if (c.strength != EdgeStrength::Strong) continue;
+            if (c.hitEdgeIndex != -1) {
+                resolveEdgeCrossingSplit(triId, c.hitEdgeIndex, c.point, pending);
+            } else {
+                resolveStrongEdgeSplit(c.va, c.vb, c.point, triId, pending);
             }
-            for (auto& c : crossingsDir2) {
-                if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak) sleepIsForTheWeak.push({c.va, c.vb});
-            }
-
-            // Primer caso "duro" (Strong interior O edge-on-edge) gana, en ese orden
-            // de aparición dentro de cada lista.
-            for (auto& c : crossingsDir1) {
-                if (c.hitEdgeIndex != -1) {
-                    resolveEdgeCrossingSplit(triId, c.hitEdgeIndex, c.point, pending);
-                    resolvedThisPair = true;
-                    break;
-                }
-                if (c.strength == EdgeStrength::Strong) {
-                    resolveStrongEdgeSplit(c.va, c.vb, c.point, triId, pending);
-                    resolvedThisPair = true;
-                    break;
-                }
-            }
-            if (!resolvedThisPair) {
-                for (auto& c : crossingsDir2) {
-                    if (c.hitEdgeIndex != -1) {
-                        resolveEdgeCrossingSplit(otherId, c.hitEdgeIndex, c.point, pending);
-                        resolvedThisPair = true;
-                        break;
-                    }
-                    if (c.strength == EdgeStrength::Strong) {
-                        resolveStrongEdgeSplit(c.va, c.vb, c.point, otherId, pending);
-                        resolvedThisPair = true;
-                        break;
-                    }
-                }
-            }
-
-            if (resolvedThisPair) { triSuperseded = true; break; }
+            resolvedStrong = true;
+            break;
         }
-    }
 
-    // ── Fix del bug de tamaño mutable: usar while, no for con size() ──
+        if (!resolvedStrong) {
+            for (auto& c : crossingsDir2) {
+                if (c.strength != EdgeStrength::Strong) continue;
+                if (c.hitEdgeIndex != -1) {
+                    resolveEdgeCrossingSplit(otherId, c.hitEdgeIndex, c.point, pending);
+                } else {
+                    resolveStrongEdgeSplit(c.va, c.vb, c.point, otherId, pending);
+                }
+                resolvedStrong = true;
+                break;
+            }
+        }
+
+        if (resolvedStrong) break; // triId cambió, se sigue vía sus hijos en pending
+        // si no hubo Strong (solo Weak o nada), seguimos probando el resto de otherId
+    }
+}
+
     while (!sleepIsForTheWeak.empty()) {
         auto edge = sleepIsForTheWeak.front();
         sleepIsForTheWeak.pop();
