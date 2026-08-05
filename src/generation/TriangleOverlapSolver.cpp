@@ -182,10 +182,10 @@ while (!pending.empty()) {
 
         // Los Weak solo se registran para la fase diferida. NO cortan la búsqueda.
         for (auto& c : crossingsDir1)
-            if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak)
+            if (c.strength == EdgeStrength::Weak)
                 sleepIsForTheWeak.push({c.va, c.vb});
         for (auto& c : crossingsDir2)
-            if (c.hitEdgeIndex == -1 && c.strength == EdgeStrength::Weak)
+            if (c.strength == EdgeStrength::Weak)
                 sleepIsForTheWeak.push({c.va, c.vb});
 
         // Buscamos un Strong real. Solo esto justifica cortar el loop de otherId,
@@ -220,8 +220,7 @@ while (!pending.empty()) {
         // si no hubo Strong (solo Weak o nada), seguimos probando el resto de otherId
     }
 }
-
-    while (!sleepIsForTheWeak.empty()) {
+while (!sleepIsForTheWeak.empty()) {
         auto edge = sleepIsForTheWeak.front();
         sleepIsForTheWeak.pop();
 
@@ -244,12 +243,32 @@ while (!pending.empty()) {
                 int v = owner->getVertex(i);
                 if (v != edge[0] && v != edge[1]) opposites.push_back(v);
             }
-            owner->markSuperseded();
         }
 
         if (owners.size() >= 2 && opposites.size() >= 2) {
-            TriangleCollection::getTriangle(owners[0])->cloneWithVertices(opposites[0], opposites[1], edge[1]);
-            TriangleCollection::getTriangle(owners[1])->cloneWithVertices(opposites[1], opposites[0], edge[0]);
+            int fwd = -1, bwd = -1;
+            for (size_t i = 0; i < owners.size(); ++i) {
+                AbstractTriangle* owner = TriangleCollection::getTriangle(owners[i]);
+                int idxA = -1, idxB = -1;
+                for (int k = 0; k < 3; ++k) {
+                    if (owner->getVertex(k) == edge[0]) idxA = k;
+                    else if (owner->getVertex(k) == edge[1]) idxB = k;
+                }
+                if (idxA == -1 || idxB == -1) continue;
+                if ((idxA + 1) % 3 == idxB) fwd = static_cast<int>(i);
+                else bwd = static_cast<int>(i);
+            }
+
+            if (fwd != -1 && bwd != -1) {
+                int oppFwd = opposites[fwd];
+                int oppBwd = opposites[bwd];
+
+                TriangleCollection::getTriangle(owners[0])->markSuperseded();
+                TriangleCollection::getTriangle(owners[1])->markSuperseded();
+
+                TriangleCollection::getTriangle(owners[fwd])->cloneWithVertices(edge[0], oppBwd, oppFwd);
+                TriangleCollection::getTriangle(owners[bwd])->cloneWithVertices(oppFwd, oppBwd, edge[1]);
+            }
         }
     }
 }
