@@ -7,8 +7,7 @@
 
 class RoomsInterfaceSolver {
 public:
-    static void resolve() {
-    }
+    static void resolve();
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_ROOMSINTERFACESOLVER_H
