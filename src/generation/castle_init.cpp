@@ -6,6 +6,7 @@
 #include "AgentManager.h"
 #include "DebugExport.h"
 #include "LevelScriptManager.h"
+#include "RoomsInterfaceSolver.h"
 #include "game/ingame_menu.h"
 
 inline int CASTLE_SEED = 0xDEADBEEF;
@@ -64,6 +65,7 @@ s32 castle_init(s16 arg, s32 unused) {
     LevelScriptManager::setup();
 
     AgentManager::start();
+    RoomsInterfaceSolver::resolve();
 
     exportTrianglesToObj("debug_pass1.obj", "ok");
 
