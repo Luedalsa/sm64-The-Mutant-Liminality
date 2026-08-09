@@ -12,7 +12,9 @@
 #include "TriangleCollection.h"
 #include "TriangleEdgeSplitSolver.h"
 
+#include <algorithm>
 #include <queue>
+#include <stack>
 
 namespace {
 
@@ -121,6 +123,59 @@ void splitEdgeAcrossOwners(int va, int vb, int newVertex) {
     }
 }
 
+bool pointBarycentric(const Vector3& p, int triId, float& u, float& v, float& w) {
+    AbstractTriangle* tri = TriangleCollection::getTriangle(triId);
+    const Vector3& a = VertexCollection::getVertex(tri->getVertex(0))->position;
+    const Vector3& b = VertexCollection::getVertex(tri->getVertex(1))->position;
+    const Vector3& c = VertexCollection::getVertex(tri->getVertex(2))->position;
+
+    Vector3 v0 = b - a, v1 = c - a, v2 = p - a;
+    float d00 = v0.dot(v0), d01 = v0.dot(v1), d11 = v1.dot(v1);
+    float d20 = v2.dot(v0), d21 = v2.dot(v1);
+    float denom = d00 * d11 - d01 * d01;
+    if (std::abs(denom) < 1e-9f) return false;
+
+    v = (d11 * d20 - d01 * d21) / denom;
+    w = (d00 * d21 - d01 * d20) / denom;
+    u = 1.0f - v - w;
+    return true;
+}
+
+// PARCHE (temporal, pre-rediseño): agrupa todos los crossings Strong interiores
+// que caen sobre targetTriId antes de partir, en vez de solo el primero.
+// Rastrea en qué fragmento cae cada punto subsecuente para no perderlos.
+// NO reemplaza el polygon-clip pendiente: si un punto no cae limpio en ningún
+// fragmento actual (numéricamente al borde), se descarta -- mejor perder un
+// crossing marginal que generar un sliver corrupto.
+void resolveStrongMultiSplit(int targetTriId, const std::vector<EdgeCrossing>& interiorCrossings,
+                              std::queue<int>& pending) {
+    std::vector<int> fragments = { targetTriId };
+
+    for (const auto& c : interiorCrossings) {
+        int fragmentHit = -1;
+        for (int f : fragments) {
+            float u, v, w;
+            if (!pointBarycentric(c.point, f, u, v, w)) continue;
+            if (u >= -TriangleEdgeSplitSolver::kBaryMargin &&
+                v >= -TriangleEdgeSplitSolver::kBaryMargin &&
+                w >= -TriangleEdgeSplitSolver::kBaryMargin) {
+                fragmentHit = f;
+                break;
+            }
+        }
+        if (fragmentHit == -1) continue;
+
+        int newVertex = TemporalVertexRegistry::getOrCreate(c.point, /*asStrong=*/true, 1.0f);
+        auto children = TriangleEdgeSplitSolver::splitTriangleAtInteriorPoint(fragmentHit, newVertex);
+        splitEdgeAcrossOwners(c.va, c.vb, newVertex);
+
+        fragments.erase(std::remove(fragments.begin(), fragments.end(), fragmentHit), fragments.end());
+        for (int child : children) fragments.push_back(child);
+    }
+
+    for (int f : fragments) pending.push(f);
+}
+
 void resolveStrongEdgeSplit(int va, int vb, const Vector3& point, int splitTargetTriId,
                              std::queue<int>& pending) {
     int beforeCount = TriangleCollection::getTriangleCount();
@@ -158,7 +213,7 @@ void resolveEdgeCrossingSplit(int triId, int edgeIndex, const Vector3& point, st
 void TriangleOverlapSolver::resolve(const std::vector<int>& committed) {
 
     std::queue<int> pending;
-    std::queue<std::array<int, 2>> sleepIsForTheWeak;
+    std::stack<std::array<int, 2>> sleepIsForTheWeak;
     for (int id : committed) pending.push(id);
 while (!pending.empty()) {
     int triId = pending.front();
@@ -176,52 +231,58 @@ while (!pending.empty()) {
         AbstractTriangle* other = TriangleCollection::getTriangle(otherId);
         if (other->isBuilt()) continue;
         if (!aabbOverlap(boxA, triangleBounds(otherId))) continue;
-
         auto crossingsDir1 = detectCrossings(otherId, triId);
         auto crossingsDir2 = detectCrossings(triId, otherId);
 
         // Los Weak solo se registran para la fase diferida. NO cortan la búsqueda.
+        /*
         for (auto& c : crossingsDir1)
             if (c.strength == EdgeStrength::Weak)
                 sleepIsForTheWeak.push({c.va, c.vb});
         for (auto& c : crossingsDir2)
             if (c.strength == EdgeStrength::Weak)
-                sleepIsForTheWeak.push({c.va, c.vb});
+                sleepIsForTheWeak.push({c.va, c.vb});*/
 
-        // Buscamos un Strong real. Solo esto justifica cortar el loop de otherId,
-        // porque solo esto deja a triId superseded (y por lo tanto "terminado").
         bool resolvedStrong = false;
+        std::vector<EdgeCrossing> strongInteriorDir1;
 
         for (auto& c : crossingsDir1) {
-            if (c.strength != EdgeStrength::Strong) continue;
+            //if (c.strength != EdgeStrength::Strong) continue;
             if (c.hitEdgeIndex != -1) {
                 resolveEdgeCrossingSplit(triId, c.hitEdgeIndex, c.point, pending);
-            } else {
-                resolveStrongEdgeSplit(c.va, c.vb, c.point, triId, pending);
-            }
-            resolvedStrong = true;
-            break;
-        }
-
-        if (!resolvedStrong) {
-            for (auto& c : crossingsDir2) {
-                if (c.strength != EdgeStrength::Strong) continue;
-                if (c.hitEdgeIndex != -1) {
-                    resolveEdgeCrossingSplit(otherId, c.hitEdgeIndex, c.point, pending);
-                } else {
-                    resolveStrongEdgeSplit(c.va, c.vb, c.point, otherId, pending);
-                }
                 resolvedStrong = true;
                 break;
             }
+            strongInteriorDir1.push_back(c);
         }
 
-        if (resolvedStrong) break; // triId cambió, se sigue vía sus hijos en pending
-        // si no hubo Strong (solo Weak o nada), seguimos probando el resto de otherId
+        if (!resolvedStrong && !strongInteriorDir1.empty()) {
+            resolveStrongMultiSplit(triId, strongInteriorDir1, pending);
+            resolvedStrong = true;
+        }
+
+        if (!resolvedStrong) {
+            std::vector<EdgeCrossing> strongInteriorDir2;
+            for (auto& c : crossingsDir2) {
+                //if (c.strength != EdgeStrength::Strong) continue;
+                if (c.hitEdgeIndex != -1) {
+                    resolveEdgeCrossingSplit(otherId, c.hitEdgeIndex, c.point, pending);
+                    resolvedStrong = true;
+                    break;
+                }
+                strongInteriorDir2.push_back(c);
+            }
+            if (!resolvedStrong && !strongInteriorDir2.empty()) {
+                resolveStrongMultiSplit(otherId, strongInteriorDir2, pending);
+                resolvedStrong = true;
+            }
+        }
+
+        if (resolvedStrong) break;
     }
 }
 while (!sleepIsForTheWeak.empty()) {
-        auto edge = sleepIsForTheWeak.front();
+        auto edge = sleepIsForTheWeak.top();
         sleepIsForTheWeak.pop();
 
         std::vector<int> owners;
@@ -245,7 +306,7 @@ while (!sleepIsForTheWeak.empty()) {
             }
         }
 
-        if (owners.size() >= 2 && opposites.size() >= 2) {
+        if (owners.size() == 2 && opposites.size() == 2) {
             int fwd = -1, bwd = -1;
             for (size_t i = 0; i < owners.size(); ++i) {
                 AbstractTriangle* owner = TriangleCollection::getTriangle(owners[i]);
@@ -269,6 +330,9 @@ while (!sleepIsForTheWeak.empty()) {
                 TriangleCollection::getTriangle(owners[fwd])->cloneWithVertices(edge[0], oppBwd, oppFwd);
                 TriangleCollection::getTriangle(owners[bwd])->cloneWithVertices(oppFwd, oppBwd, edge[1]);
             }
+        } else {
+            std::cerr << "Warning: Edge (" << edge[0] << ", " << edge[1] << ") has "
+                 << owners.size() << " owners and " << opposites.size() << " opposites. This edge shouldn't have been classified as weak.\n";
         }
     }
 }
