@@ -11,14 +11,14 @@
 struct SemanticEdge;
 
 class SemanticRelations {
-    std::deque<SemanticEdge> edges;
+    std::deque<int> edges;
 public:
     std::vector<int> weights;
 
     SemanticRelations() = default;
-    void addEdge(const SemanticEdge& edge) { edges.push_back(edge); }
+    void addEdge(int edge) { edges.push_back(edge); }
 
-    std::deque<SemanticEdge>* getEdges(int semanticKey) const;
+    std::deque<int>* getEdges();
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_EDGERELATIONS_H

@@ -14,7 +14,7 @@ struct SemanticVertex {
     float yaw = 0;
     int relations = -1;
     SemanticVertex* parent = nullptr;
-    SemanticEdge* parentEdge = nullptr;
+    int parentEdge = -1;
 
     bool operator< (const SemanticVertex& other) const { // TODO use degeneration to decide priority, most degenerated ones go first
         return position.length() > other.position.length();

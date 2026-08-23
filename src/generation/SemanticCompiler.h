@@ -41,7 +41,7 @@ public:
     // del vértice raíz); a partir de ahí toda la navegación es índice->índice
     // vía SemanticEdge::relations, sin volver a tocar este mapa.
     // Llamar de nuevo invalida todos los índices previos (storage.clear()).
-    static std::unordered_map<int, int> compile(void *heatmap = nullptr) {
+    static std::unordered_map<int, int> compile(std::vector<SemanticEdge>& edges, void *heatmap = nullptr) {
         storage.clear();
 
         std::unordered_map<int, int> relationsByVertex;
@@ -75,8 +75,10 @@ public:
                 RelativeTransform aToB = computeTransform(va, vb);
                 RelativeTransform bToA = computeTransform(vb, va);
 
-                storage[idxA].addEdge(SemanticEdge{ idxB, { tri->getFrontType() }, aToB });
-                storage[idxB].addEdge(SemanticEdge{ idxA, { tri->getFrontType() }, bToA });
+                edges.push_back(SemanticEdge{ idxB, { tri->getFrontType() }, aToB });
+                storage[idxA].addEdge(edges.size() - 1);
+                edges.push_back(SemanticEdge{ idxA, { tri->getFrontType() }, bToA });
+                storage[idxB].addEdge(edges.size() - 1);
             }
         }
 
