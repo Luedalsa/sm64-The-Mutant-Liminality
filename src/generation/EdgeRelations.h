@@ -18,7 +18,7 @@ public:
     SemanticRelations() = default;
     void addEdge(const SemanticEdge& edge) { edges.push_back(edge); }
 
-    std::deque<SemanticEdge> getEdges(SemanticRelations *semanticKey) const;
+    std::deque<SemanticEdge>* getEdges(int semanticKey) const;
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_EDGERELATIONS_H

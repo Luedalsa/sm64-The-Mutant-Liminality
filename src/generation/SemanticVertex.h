@@ -12,7 +12,7 @@
 struct SemanticVertex {
     Vector3 position;
     float yaw = 0;
-    SemanticRelations* relations = nullptr;
+    int relations = -1;
     SemanticVertex* parent = nullptr;
     SemanticEdge* parentEdge = nullptr;
 

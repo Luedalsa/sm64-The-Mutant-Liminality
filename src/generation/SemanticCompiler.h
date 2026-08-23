@@ -17,10 +17,6 @@
 #include <vector>
 
 class SemanticCompiler {
-    // Storage con direcciones estables (mismo motivo que VertexCollection /
-    // TriangleCollection usan deque): cada SemanticEdge guarda un puntero
-    // crudo a un SemanticRelations vecino, y ese puntero no puede invalidarse
-    // si el storage crece.
     static std::deque<SemanticRelations> storage;
 
     static uint64_t edgeKey(int a, int b) {
@@ -40,22 +36,24 @@ class SemanticCompiler {
     }
 
 public:
-    // Devuelve un mapa vertexId -> SemanticRelations*. Llamar de nuevo invalida
-    // TODOS los punteros previos (storage.clear()) -- no guardes SemanticVertex
-    // vivos a través de dos llamadas a compile().
-    static std::unordered_map<int, SemanticRelations*> compile(void *heatmap = nullptr) {
+    // Devuelve un mapa vertexId (del castillo base) -> índice en `storage`.
+    // Ese mapa SOLO sirve para el bootstrap (encontrar el índice semántico
+    // del vértice raíz); a partir de ahí toda la navegación es índice->índice
+    // vía SemanticEdge::relations, sin volver a tocar este mapa.
+    // Llamar de nuevo invalida todos los índices previos (storage.clear()).
+    static std::unordered_map<int, int> compile(void *heatmap = nullptr) {
         storage.clear();
 
-        std::unordered_map<int, SemanticRelations*> relationsByVertex;
+        std::unordered_map<int, int> relationsByVertex;
         std::unordered_set<uint64_t> visitedEdges;
 
-        auto ensureRelations = [&](int vid) -> SemanticRelations* {
+        auto ensureRelations = [&](int vid) -> int {
             auto it = relationsByVertex.find(vid);
             if (it != relationsByVertex.end()) return it->second;
             storage.emplace_back();
-            SemanticRelations* rel = &storage.back();
-            relationsByVertex[vid] = rel;
-            return rel;
+            int idx = static_cast<int>(storage.size()) - 1;
+            relationsByVertex[vid] = idx;
+            return idx;
         };
 
         int triCount = 12;
@@ -71,18 +69,25 @@ public:
                 if (visitedEdges.count(key)) continue;
                 visitedEdges.insert(key);
 
-                SemanticRelations* relA = ensureRelations(va);
-                SemanticRelations* relB = ensureRelations(vb);
+                int idxA = ensureRelations(va);
+                int idxB = ensureRelations(vb);
 
                 RelativeTransform aToB = computeTransform(va, vb);
                 RelativeTransform bToA = computeTransform(vb, va);
 
-                relA->addEdge(SemanticEdge{ relB, { tri->getFrontType() }, aToB });
-                relB->addEdge(SemanticEdge{ relA, { tri->getFrontType() }, bToA });
+                storage[idxA].addEdge(SemanticEdge{ idxB, { tri->getFrontType() }, aToB });
+                storage[idxB].addEdge(SemanticEdge{ idxA, { tri->getFrontType() }, bToA });
             }
         }
 
         return relationsByVertex;
+    }
+
+    // Único punto de resolución índice -> objeto, igual que
+    // VertexCollection::getVertex / TriangleCollection::getTriangle.
+    static SemanticRelations* get(int idx) {
+        if (idx < 0 || idx >= static_cast<int>(storage.size())) return nullptr;
+        return &storage[idx];
     }
 };
 
