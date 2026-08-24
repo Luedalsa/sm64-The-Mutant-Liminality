@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 class SemanticCompiler {
     static std::deque<SemanticRelations> storage;
@@ -71,6 +72,38 @@ class SemanticCompiler {
         return RelativeTransform{ distance, yaw, delta.y };
     }
 
+    // SemanticCompiler.h — reemplaza el segundo pase del compile()
+
+    // NUEVO: recolecta todos los TriangleFaceType (front + back, sin None,
+    // sin duplicados) de TODOS los dueños de una arista. A diferencia del
+    // código anterior, esto ya no depende de "por cuál triángulo llegué",
+    // es una propiedad simétrica de la arista misma.
+    static std::vector<TriangleFaceType> collectEdgeTriangleTypes(
+        uint64_t key,
+        const std::unordered_map<uint64_t, std::vector<int>>& edgeOwners)
+    {
+        std::vector<TriangleFaceType> types;
+        auto it = edgeOwners.find(key);
+        if (it == edgeOwners.end()) return types;
+
+        for (int ownerIdx : it->second) {
+            const AbstractTriangle& tri = BaseCastle::baseTriangles[ownerIdx];
+
+            TriangleFaceType front = tri.getFrontType();
+            if (front != TriangleFaceType::None &&
+                std::find(types.begin(), types.end(), front) == types.end()) {
+                types.push_back(front);
+            }
+
+            TriangleFaceType back = tri.getBackType();
+            if (back != TriangleFaceType::None &&
+                std::find(types.begin(), types.end(), back) == types.end()) {
+                types.push_back(back);
+            }
+        }
+        return types;
+    }
+
 public:
     static std::unordered_map<int, int> compile(std::vector<SemanticEdge>& edges, void *heatmap = nullptr) {
         storage.clear();
@@ -89,9 +122,6 @@ public:
 
         int triCount = 12;
 
-        // Primer pase: quién es dueño de cada arista, necesario ANTES de
-        // poder clasificar Strong/Weak (a diferencia de classifyEdge, que
-        // consulta esto on-demand vía connectingTriangles).
         std::unordered_map<uint64_t, std::vector<int>> edgeOwners;
         for (int t = 0; t < triCount; ++t) {
             AbstractTriangle* tri = &BaseCastle::baseTriangles[t];
@@ -102,7 +132,6 @@ public:
             }
         }
 
-        // Segundo pase: el compilado real, ahora filtrando Weak.
         for (int t = 0; t < triCount; ++t) {
             AbstractTriangle* tri = &BaseCastle::baseTriangles[t];
 
@@ -115,11 +144,6 @@ public:
                 visitedEdges.insert(key);
 
                 if (classifyBaseCastleEdge(va, vb, edgeOwners) == EdgeStrength::Weak) {
-                    // Diagonal interna de una cara plana: no es arista
-                    // estructural, no genera SemanticEdge. Igual me aseguro
-                    // de que ambos vértices existan en storage, por si otra
-                    // arista Strong los referencia después y espera
-                    // encontrarlos ya creados.
                     ensureRelations(va);
                     ensureRelations(vb);
                     continue;
@@ -131,9 +155,13 @@ public:
                 RelativeTransform aToB = computeTransform(va, vb);
                 RelativeTransform bToA = computeTransform(vb, va);
 
-                edges.push_back(SemanticEdge{ idxB, { tri->getFrontType() }, aToB });
+                // Ambas direcciones comparten la misma lista de tipos:
+                // es una propiedad de la arista, no de por dónde se recorre.
+                std::vector<TriangleFaceType> sharedTypes = collectEdgeTriangleTypes(key, edgeOwners);
+
+                edges.push_back(SemanticEdge{ idxB, sharedTypes, aToB });
                 storage[idxA].addEdge(edges.size() - 1);
-                edges.push_back(SemanticEdge{ idxA, { tri->getFrontType() }, bToA });
+                edges.push_back(SemanticEdge{ idxA, sharedTypes, bToA });
                 storage[idxB].addEdge(edges.size() - 1);
             }
         }
