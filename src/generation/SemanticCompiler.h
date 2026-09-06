@@ -189,6 +189,12 @@ public:
         int diagonalF = storage.size() - 1;
         relationsByVertex[diagonalF] = diagonalF;
         storage.push_back(SemanticRelations{});
+        int WallJ = storage.size() - 1;
+        relationsByVertex[WallJ] = WallJ;
+        storage.push_back(SemanticRelations{});
+        int WallK = storage.size() - 1;
+        relationsByVertex[WallK] = WallK;
+        storage.push_back(SemanticRelations{});
         static std::vector<TriangleFaceType> sharedTypes = {
             TriangleFaceType::InsideWallFirstFloor,
             TriangleFaceType::InsideRoofFirstFloor,
@@ -251,7 +257,11 @@ public:
         storage[diagonalE].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ WallI, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallI].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 1639.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallJ, sharedTypes, RelativeTransform{ 1639.0f, -3.141592f/4.0f, 0.0f } });
+        storage[WallJ].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallK, sharedTypes, RelativeTransform{ 625.0f, 3.141592f/2.0f, 0.0f } });
+        storage[WallK].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 2253.0f, 3.141592f/2.0f, 0.0f } });
 
         return relationsByVertex;
     }
