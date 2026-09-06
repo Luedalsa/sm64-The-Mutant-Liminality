@@ -16,7 +16,7 @@ public:
     std::vector<int> weights;
 
     SemanticRelations() = default;
-    void addEdge(int edge) { edges.push_back(edge); }
+    void addEdge(int edge, int weight) { edges.push_back(edge); weights.push_back(weight); }
 
     std::deque<int>* getEdges();
 };

@@ -11,13 +11,13 @@
 
 struct SemanticVertex {
     Vector3 position;
-    float yaw = 0;
+    float yaw = 0.0f;
     int relations = -1;
     SemanticVertex* parent = nullptr;
     int parentEdge = -1;
 
     bool operator< (const SemanticVertex& other) const { // TODO use degeneration to decide priority, most degenerated ones go first
-        return position.length() > other.position.length();
+        return std::sqrt(float(position.x * position.x + position.z * position.z)) < std::sqrt(float(other.position.x * other.position.x + other.position.z * other.position.z));
     }
 };
 

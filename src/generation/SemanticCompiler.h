@@ -106,66 +106,88 @@ class SemanticCompiler {
 
 public:
     static std::unordered_map<int, int> compile(std::vector<SemanticEdge>& edges, void *heatmap = nullptr) {
-        storage.clear();
-
-        std::unordered_map<int, int> relationsByVertex;
-        std::unordered_set<uint64_t> visitedEdges;
-
-        auto ensureRelations = [&](int vid) -> int {
-            auto it = relationsByVertex.find(vid);
-            if (it != relationsByVertex.end()) return it->second;
-            storage.emplace_back();
-            int idx = static_cast<int>(storage.size()) - 1;
-            relationsByVertex[vid] = idx;
-            return idx;
+        auto relationsByVertex = std::unordered_map<int, int>{  };
+        storage.push_back(SemanticRelations{});
+        int pillarA = storage.size() - 1;
+        relationsByVertex[pillarA] = pillarA;
+        storage.push_back(SemanticRelations{});
+        int pillarB = storage.size() - 1;
+        relationsByVertex[pillarB] = pillarB;
+        storage.push_back(SemanticRelations{});
+        int pillarC = storage.size() - 1;
+        relationsByVertex[pillarC] = pillarC;
+        storage.push_back(SemanticRelations{});
+        int pillarD = storage.size() - 1;
+        relationsByVertex[pillarD] = pillarD;
+        storage.push_back(SemanticRelations{});
+        int pillarE = storage.size() - 1;
+        relationsByVertex[pillarE] = pillarE;
+        storage.push_back(SemanticRelations{});
+        int pillarF = storage.size() - 1;
+        relationsByVertex[pillarF] = pillarF;
+        storage.push_back(SemanticRelations{});
+        int pillarG = storage.size() - 1;
+        relationsByVertex[pillarG] = pillarG;
+        storage.push_back(SemanticRelations{});
+        int pillarH = storage.size() - 1;
+        relationsByVertex[pillarH] = pillarH;
+        storage.push_back(SemanticRelations{});
+        int pillarI = storage.size() - 1;
+        relationsByVertex[pillarI] = pillarI;
+        storage.push_back(SemanticRelations{});
+        int WallA = storage.size() - 1;
+        relationsByVertex[WallA] = WallA;
+        storage.push_back(SemanticRelations{});
+        int WallB = storage.size() - 1;
+        relationsByVertex[WallB] = WallB;
+        storage.push_back(SemanticRelations{});
+        int diagonalA = storage.size() - 1;
+        relationsByVertex[diagonalA] = diagonalA;
+        storage.push_back(SemanticRelations{});
+        int WallC = storage.size() - 1;
+        relationsByVertex[WallC] = WallC;
+        storage.push_back(SemanticRelations{});
+        int WallD = storage.size() - 1;
+        relationsByVertex[WallD] = WallD;
+        static std::vector<TriangleFaceType> sharedTypes = {
+            TriangleFaceType::InsideWallFirstFloor,
+            TriangleFaceType::InsideRoofFirstFloor,
+            TriangleFaceType::CheckerboardFloor
         };
-
-        int triCount = 12;
-
-        std::unordered_map<uint64_t, std::vector<int>> edgeOwners;
-        for (int t = 0; t < triCount; ++t) {
-            AbstractTriangle* tri = &BaseCastle::baseTriangles[t];
-            for (int i = 0; i < 3; ++i) {
-                int va = tri->getVertex(i);
-                int vb = tri->getVertex((i + 1) % 3);
-                edgeOwners[edgeKey(va, vb)].push_back(t);
-            }
-        }
-
-        for (int t = 0; t < triCount; ++t) {
-            AbstractTriangle* tri = &BaseCastle::baseTriangles[t];
-
-            for (int i = 0; i < 3; ++i) {
-                int va = tri->getVertex(i);
-                int vb = tri->getVertex((i + 1) % 3);
-
-                uint64_t key = edgeKey(va, vb);
-                if (visitedEdges.count(key)) continue;
-                visitedEdges.insert(key);
-
-                if (classifyBaseCastleEdge(va, vb, edgeOwners) == EdgeStrength::Weak) {
-                    ensureRelations(va);
-                    ensureRelations(vb);
-                    continue;
-                }
-
-                int idxA = ensureRelations(va);
-                int idxB = ensureRelations(vb);
-
-                RelativeTransform aToB = computeTransform(va, vb);
-                RelativeTransform bToA = computeTransform(vb, va);
-
-                // Ambas direcciones comparten la misma lista de tipos:
-                // es una propiedad de la arista, no de por dónde se recorre.
-                std::vector<TriangleFaceType> sharedTypes = collectEdgeTriangleTypes(key, edgeOwners);
-
-                edges.push_back(SemanticEdge{ idxB, sharedTypes, aToB });
-                storage[idxA].addEdge(edges.size() - 1);
-                edges.push_back(SemanticEdge{ idxA, sharedTypes, bToA });
-                storage[idxB].addEdge(edges.size() - 1);
-            }
-        }
-
+        storage[pillarA].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarB, sharedTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarB].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarC, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        storage[pillarC].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallA, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        int pilA = edges.size();
+        edges.push_back(SemanticEdge{ pillarD, sharedTypes, RelativeTransform{ 2251.0f, 3.141592f/2.0f, 0.0f } });
+        int pilB = edges.size();
+        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
+        storage[WallA].addEdge(pilA, 10);
+        //storage[WallA].addEdge(pilB, 1);
+        storage[pillarD].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarE, sharedTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarE].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarF, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        storage[pillarF].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallB, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        //storage[WallB].addEdge(pilA, 1);
+        //storage[WallB].addEdge(pilB, 10);
+        storage[WallB].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarG, sharedTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarG].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarH, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarH].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarI, sharedTypes, RelativeTransform{ 72.83, -3.141592f/4.0f, 0.0f } });
+        storage[pillarI].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallC, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        storage[WallC].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ diagonalA, sharedTypes, RelativeTransform{ 1637.0f, 3.141592f/2.0f, 0.0f } });
+        storage[diagonalA].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallD, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        storage[WallD].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 1228.0f, -3.141592f/4.0f, 0.0f } });
         return relationsByVertex;
     }
 
