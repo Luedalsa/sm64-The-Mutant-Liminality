@@ -155,6 +155,18 @@ public:
         storage.push_back(SemanticRelations{});
         int WallE = storage.size() - 1;
         relationsByVertex[WallE] = WallE;
+        storage.push_back(SemanticRelations{});
+        int pillarJ = storage.size() - 1;
+        relationsByVertex[pillarJ] = pillarJ;
+        storage.push_back(SemanticRelations{});
+        int pillarK = storage.size() - 1;
+        relationsByVertex[pillarK] = pillarK;
+        storage.push_back(SemanticRelations{});
+        int pillarL = storage.size() - 1;
+        relationsByVertex[pillarL] = pillarL;
+        storage.push_back(SemanticRelations{});
+        int WallF = storage.size() - 1;
+        relationsByVertex[WallF] = WallF;
         static std::vector<TriangleFaceType> sharedTypes = {
             TriangleFaceType::InsideWallFirstFloor,
             TriangleFaceType::InsideRoofFirstFloor,
@@ -197,7 +209,15 @@ public:
         storage[diagonalB].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ WallE, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallE].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 1228.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarJ, sharedTypes, RelativeTransform{ 1228.0f, -3.141592f/4.0f, 0.0f } });
+        storage[pillarJ].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarK, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarK].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarL, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        storage[pillarL].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallF, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        storage[WallF].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 205.0f, 3.141592f/2.0f, 0.0f } });
         return relationsByVertex;
     }
 
