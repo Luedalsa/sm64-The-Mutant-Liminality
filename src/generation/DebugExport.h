@@ -23,7 +23,7 @@ inline void exportTrianglesToObj(
 
     for (int t = 0; t < VertexCollection::getVertexCount(); ++t) {
         auto v = VertexCollection::getVertex(t)->position;
-        out << "v " << v.x/300.0f << " " << v.y/300.0f << " " << v.z/300.0f << "\n";
+        out << "v " << v.x << " " << v.y << " " << v.z << "\n";
     }
 
     out << "g " << groupName << "\n";
