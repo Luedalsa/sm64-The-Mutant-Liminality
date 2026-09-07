@@ -195,6 +195,18 @@ public:
         int WallK = storage.size() - 1;
         relationsByVertex[WallK] = WallK;
         storage.push_back(SemanticRelations{});
+        int WallL = storage.size() - 1;
+        relationsByVertex[WallL] = WallL;
+        storage.push_back(SemanticRelations{});
+        int pillarM = storage.size() - 1;
+        relationsByVertex[pillarM] = pillarM;
+        storage.push_back(SemanticRelations{});
+        int pillarN = storage.size() - 1;
+        relationsByVertex[pillarN] = pillarN;
+        storage.push_back(SemanticRelations{});
+        int pillarO = storage.size() - 1;
+        relationsByVertex[pillarO] = pillarO;
+        storage.push_back(SemanticRelations{});
         static std::vector<TriangleFaceType> sharedTypes = {
             TriangleFaceType::InsideWallFirstFloor,
             TriangleFaceType::InsideRoofFirstFloor,
@@ -261,8 +273,15 @@ public:
         storage[WallJ].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ WallK, sharedTypes, RelativeTransform{ 625.0f, 3.141592f/2.0f, 0.0f } });
         storage[WallK].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 2253.0f, 3.141592f/2.0f, 0.0f } });
-
+        edges.push_back(SemanticEdge{ pillarM, sharedTypes, RelativeTransform{ 2253.0f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarM].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarN, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        storage[pillarN].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarO, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        storage[pillarO].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ WallL, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        storage[WallL].addEdge(edges.size(), 1);
+        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 921.0f, 3.141592f/2.0f, 0.0f } });
         return relationsByVertex;
     }
 
