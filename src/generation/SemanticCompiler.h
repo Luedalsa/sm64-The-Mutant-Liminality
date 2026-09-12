@@ -232,6 +232,13 @@ public:
             TriangleFaceType::BasementPillar,
             TriangleFaceType::InsideRoofFirstFloor
         };
+        static std::vector<TriangleFaceType> wallWallTypes = {
+            TriangleFaceType::InsideWallFirstFloor
+        };
+        static std::vector<TriangleFaceType> wallPillarTypes = {
+            TriangleFaceType::BasementPillar,
+            TriangleFaceType::InsideWallFirstFloor
+        };
         storage[WallY].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ diagonalZ, floorWallTypes, RelativeTransform{ 307.0f, 3.141592f/2.0f, 0.0f } });
         storage[diagonalZ].addEdge(edges.size(), 1);
