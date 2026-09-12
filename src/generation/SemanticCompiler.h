@@ -216,87 +216,98 @@ public:
         int WallY = storage.size() - 1;
         relationsByVertex[WallY] = WallY;
         storage.push_back(SemanticRelations{});
-        static std::vector<TriangleFaceType> sharedTypes = {
+        static std::vector<TriangleFaceType> floorWallTypes = {
             TriangleFaceType::InsideWallFirstFloor,
-            TriangleFaceType::InsideRoofFirstFloor,
             TriangleFaceType::CheckerboardFloor
         };
+        static std::vector<TriangleFaceType> roofWallTypes = {
+            TriangleFaceType::InsideWallFirstFloor,
+            TriangleFaceType::InsideRoofFirstFloor
+        };
+        static std::vector<TriangleFaceType> floorPillarTypes = {
+            TriangleFaceType::BasementPillar,
+            TriangleFaceType::InsideRoofFirstFloor
+        };
+        static std::vector<TriangleFaceType> roofPillarTypes = {
+            TriangleFaceType::BasementPillar,
+            TriangleFaceType::InsideRoofFirstFloor
+        };
         storage[WallY].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalZ, sharedTypes, RelativeTransform{ 307.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalZ, floorWallTypes, RelativeTransform{ 307.0f, 3.141592f/2.0f, 0.0f } });
         storage[diagonalZ].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallZ, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallZ, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallZ].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 563.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarA, floorWallTypes, RelativeTransform{ 563.0f, -3.141592f/4.0f, 0.0f } });
         storage[pillarA].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarB, sharedTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarB, floorWallTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
         storage[pillarB].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarC, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarC, floorWallTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
         storage[pillarC].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallA, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallA, floorWallTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         int pilA = edges.size();
-        edges.push_back(SemanticEdge{ pillarD, sharedTypes, RelativeTransform{ 2251.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarD, floorWallTypes, RelativeTransform{ 2251.0f, 3.141592f/2.0f, 0.0f } });
         int pilB = edges.size();
-        edges.push_back(SemanticEdge{ pillarA, sharedTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarA, floorWallTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
         storage[WallA].addEdge(pilA, 10);
         //storage[WallA].addEdge(pilB, 1);
         storage[pillarD].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarE, sharedTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarE, floorWallTypes, RelativeTransform{ 51.0f, 3.141592f/2.0f, 0.0f } });
         storage[pillarE].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarF, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarF, floorWallTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
         storage[pillarF].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallB, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallB, floorWallTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         //storage[WallB].addEdge(pilA, 1);
         //storage[WallB].addEdge(pilB, 10);
         storage[WallB].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarG, sharedTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarG, floorWallTypes, RelativeTransform{ 410.0f, 3.141592f/2.0f, 0.0f } });
         storage[pillarG].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarH, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarH, floorWallTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
         storage[pillarH].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarI, sharedTypes, RelativeTransform{ 72.83, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarI, floorWallTypes, RelativeTransform{ 72.83, -3.141592f/4.0f, 0.0f } });
         storage[pillarI].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallC, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallC, floorWallTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         storage[WallC].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalA, sharedTypes, RelativeTransform{ 1637.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalA, floorWallTypes, RelativeTransform{ 1637.0f, 3.141592f/2.0f, 0.0f } });
         storage[diagonalA].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallD, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallD, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallD].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalB, sharedTypes, RelativeTransform{ 1945.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalB, floorWallTypes, RelativeTransform{ 1945.0f, -3.141592f/4.0f, 0.0f } });
         storage[diagonalB].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallE, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallE, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallE].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarJ, sharedTypes, RelativeTransform{ 1228.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarJ, floorWallTypes, RelativeTransform{ 1228.0f, -3.141592f/4.0f, 0.0f } });
         storage[pillarJ].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarK, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarK, floorWallTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
         storage[pillarK].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarL, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarL, floorWallTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
         storage[pillarL].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallF, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallF, floorWallTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         storage[WallF].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalC, sharedTypes, RelativeTransform{ 205.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalC, floorWallTypes, RelativeTransform{ 205.0f, 3.141592f/2.0f, 0.0f } });
         storage[diagonalC].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallG, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallG, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallG].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalD, sharedTypes, RelativeTransform{ 820.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalD, floorWallTypes, RelativeTransform{ 820.0f, -3.141592f/4.0f, 0.0f } });
         storage[diagonalD].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallH, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallH, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallH].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ diagonalE, sharedTypes, RelativeTransform{ 717.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ diagonalE, floorWallTypes, RelativeTransform{ 717.0f, -3.141592f/4.0f, 0.0f } });
         storage[diagonalE].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallI, sharedTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallI, floorWallTypes, RelativeTransform{ 144.959f, -3.141592f/4.0f, 0.0f } });
         storage[WallI].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallJ, sharedTypes, RelativeTransform{ 1639.0f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallJ, floorWallTypes, RelativeTransform{ 1639.0f, -3.141592f/4.0f, 0.0f } });
         storage[WallJ].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallK, sharedTypes, RelativeTransform{ 625.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallK, floorWallTypes, RelativeTransform{ 625.0f, 3.141592f/2.0f, 0.0f } });
         storage[WallK].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarM, sharedTypes, RelativeTransform{ 2253.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarM, floorWallTypes, RelativeTransform{ 2253.0f, 3.141592f/2.0f, 0.0f } });
         storage[pillarM].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarN, sharedTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarN, floorWallTypes, RelativeTransform{ 51.83f, 3.141592f/2.0f, 0.0f } });
         storage[pillarN].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ pillarO, sharedTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ pillarO, floorWallTypes, RelativeTransform{ 72.83f, -3.141592f/4.0f, 0.0f } });
         storage[pillarO].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallL, sharedTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallL, floorWallTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         storage[WallL].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallY, sharedTypes, RelativeTransform{ 921.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallY, floorWallTypes, RelativeTransform{ 921.0f, 3.141592f/2.0f, 0.0f } });
         return relationsByVertex;
     }
 
