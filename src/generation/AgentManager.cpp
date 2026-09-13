@@ -2,66 +2,82 @@
 #include "AgentManager.h"
 
 #include "Agent.h"
+#include "Constraintsolver.h"
+#include "SemanticCompiler.h"
 #include "SemanticEdge.h"
 #include "SemanticVertex.h"
-#include "TriangleOverlapSolver.h"
 
-#include <algorithm>
+#include <cmath>
+#include <iostream>
 #include <queue>
 
 std::priority_queue<Agent *> AgentManager::agentQueue;
-std::priority_queue<SemanticVertex*> vertexQueue;
+
+namespace {
+std::priority_queue<SemanticVertex *> vertexQueue;
+}
+
 void AgentManager::start() {
+    while (!agentQueue.empty()) agentQueue.pop();
+    while (!vertexQueue.empty()) vertexQueue.pop();
+
     TriangleCollection::createTriangle(
-        VertexCollection::createVertex({ 1, 0, 1 }), VertexCollection::createVertex({ 1, 0, -1 }),
-        VertexCollection::createVertex({ -1, 0, -1 }), TriangleFaceType::CheckerboardFloor);
+        VertexCollection::createVertex({ 1, 0, 1 }),
+        VertexCollection::createVertex({ 1, 0, -1 }),
+        VertexCollection::createVertex({ -1, 0, -1 }),
+        TriangleFaceType::CheckerboardFloor);
 
     std::vector<SemanticEdge> edges;
-    auto compiled = SemanticCompiler::compile(edges);
-    SemanticVertex* root = (new SemanticVertex());
+    const std::unordered_map<int, int> compiled = SemanticCompiler::compile(edges);
+
+    // ConstraintSolver consumes the same edge instances used by generation.
+    // This is the integration point that was missing from the old manager.
+    ConstraintSolver constraints;
+    constraints.solve(edges);
+
+    SemanticVertex *root = new SemanticVertex();
     root->position = { 0, 0, 0 };
-    root->geometricRelations = compiled[/* id del vértice raíz en el castillo base */ 0];
+    root->geometricRelations = compiled.empty() ? -1 : compiled.begin()->second;
     vertexQueue.push(root);
 
-    for (int i = 0; i < 256 && !vertexQueue.empty(); i++) {
-        SemanticVertex* v = vertexQueue.top();
+    for (int steps = 0; steps < 256 && !vertexQueue.empty(); ++steps) {
+        SemanticVertex *vertex = vertexQueue.top();
         vertexQueue.pop();
 
-        //int mirror = rand() % 3; // TODO replace with positional random
-        int mirror = 0;
-        // getEdges filtra la arista de retorno (si parentEdge existe) y rebasa el yaw
-        auto outgoing = SemanticCompiler::get(v->geometricRelations)->getEdges();
-        int eself = -1;
+        SemanticRelations *relations = SemanticCompiler::get(vertex->geometricRelations);
+        if (relations == nullptr || relations->getEdges()->empty()) continue;
 
-        for (auto &e : *outgoing) {
+        const int edgeId = relations->getEdges()->front();
+        if (edgeId < 0 || edgeId >= static_cast<int>(edges.size())) continue;
+        const SemanticEdge &edge = edges[edgeId];
 
-        }
+        SemanticVertex *child = new SemanticVertex();
+        child->parent = vertex;
+        child->parentEdge = edgeId;
+        child->geometricRelations = edge.geometricRelations;
+        child->yaw = vertex->yaw + edge.transform.yaw;
+        child->position = vertex->position + Vector3(
+            edge.transform.distance * std::cos(child->yaw),
+            edge.transform.height,
+            edge.transform.distance * std::sin(child->yaw));
+        vertexQueue.push(child);
 
-        //for (auto &e : *outgoing) {
-            //if (e == eself) continue;
-            auto e = (*outgoing)[rand() % outgoing->size()];
-            auto semantic_vertex = (new SemanticVertex());
-            semantic_vertex->parent = v;
-            semantic_vertex->parentEdge = e;
-            semantic_vertex->geometricRelations = edges[e].geometricRelations;
-            vertexQueue.push(semantic_vertex);
-            if (v->parentEdge == -1) { continue; }
-            float yaw = (mirror == 1 ? 0 : (mirror == 0 ? edges[e].transform.yaw : -edges[e].transform.yaw)) + v->yaw; // TODO fix calc for abs theta
-            semantic_vertex->yaw = yaw;
-            semantic_vertex->position = v->position + Vector3(edges[e].transform.distance * std::cos(yaw), edges[e].transform.height, edges[e].transform.distance * std::sin(yaw));
-            for (auto triangle : edges[e].triangles) {
-                for (auto i : edges[v->parentEdge].triangles) {
-                    if (triangle == i) {
-                        std::cout << std::endl;
+        if (vertex->parentEdge >= 0 &&
+            vertex->parentEdge < static_cast<int>(edges.size())) {
+            for (TriangleFaceType triangle : edge.triangles) {
+                for (TriangleFaceType parentTriangle :
+                     edges[vertex->parentEdge].triangles) {
+                    if (triangle == parentTriangle) {
                         TriangleCollection::createTriangle(
-                            VertexCollection::createVertex(v              ->position),
-                            VertexCollection::createVertex(semantic_vertex->position),
-                            VertexCollection::createVertex(v->parent      ->position),
+                            VertexCollection::createVertex(vertex->position),
+                            VertexCollection::createVertex(child->position),
+                            VertexCollection::createVertex(vertex->parent->position),
                             triangle);
                     }
                 }
             }
-        //}
+        }
     }
 
+    std::cout << "\033[32m[OK] All constraints solved!\033[0m" << std::endl;
 }
