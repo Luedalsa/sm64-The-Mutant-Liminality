@@ -1,7 +1,6 @@
 // src/generation/AgentManager.cpp
 #include "AgentManager.h"
 
-#include "Agent.h"
 #include "Constraintsolver.h"
 #include "SemanticCompiler.h"
 #include "SemanticEdge.h"
@@ -11,14 +10,11 @@
 #include <iostream>
 #include <queue>
 
-std::priority_queue<Agent *> AgentManager::agentQueue;
-
 namespace {
 std::priority_queue<SemanticVertex *> vertexQueue;
 }
 
 void AgentManager::start() {
-    while (!agentQueue.empty()) agentQueue.pop();
     while (!vertexQueue.empty()) vertexQueue.pop();
 
     TriangleCollection::createTriangle(
