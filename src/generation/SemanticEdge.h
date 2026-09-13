@@ -18,7 +18,7 @@ struct RelativeTransform
 };
 
 struct SemanticEdge {
-    int relations;
+    int geometricRelations;
     std::vector<TriangleFaceType> triangles = {};
     RelativeTransform transform{0.0f, 0, 0.0f};
 };
