@@ -1,8 +1,0 @@
-// src/generation/Gene.h
-#ifndef SM64_THE_MUTANT_LIMINALITY_GENE_H
-#define SM64_THE_MUTANT_LIMINALITY_GENE_H
-
-struct Gene {
-};
-
-#endif // SM64_THE_MUTANT_LIMINALITY_GENE_H
