@@ -238,7 +238,7 @@ public:
         static std::vector<TriangleFaceType> wallPillarTypes = {
             TriangleFaceType::BasementPillar,
             TriangleFaceType::InsideWallFirstFloor
-        };
+        };/*
         storage[WallY].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ diagonalZ, floorWallTypes, RelativeTransform{ 307.0f, 3.141592f/2.0f, 0.0f } });
         storage[diagonalZ].addEdge(edges.size(), 1);
@@ -314,7 +314,7 @@ public:
         storage[pillarO].addEdge(edges.size(), 1);
         edges.push_back(SemanticEdge{ WallL, floorPillarTypes, RelativeTransform{ 51.83f, -3.141592f/4.0f, 0.0f } });
         storage[WallL].addEdge(edges.size(), 1);
-        edges.push_back(SemanticEdge{ WallY, floorWallTypes, RelativeTransform{ 921.0f, 3.141592f/2.0f, 0.0f } });
+        edges.push_back(SemanticEdge{ WallY, floorWallTypes, RelativeTransform{ 921.0f, 3.141592f/2.0f, 0.0f } });*/
         return relationsByVertex;
     }
 

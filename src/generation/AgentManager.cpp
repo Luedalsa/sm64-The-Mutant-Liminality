@@ -57,12 +57,12 @@ void AgentManager::start() {
             edge.transform.height,
             edge.transform.distance * std::sin(child->yaw));
         vertexQueue.push(child);
-
+/*
         if (vertex->parentEdge >= 0 &&
             vertex->parentEdge < static_cast<int>(edges.size())) {
-            for (TriangleFaceType triangle : edge.triangles) {
+            for (TriangleFaceType triangle : edge.idealFaceTypes) {
                 for (TriangleFaceType parentTriangle :
-                     edges[vertex->parentEdge].triangles) {
+                     edges[vertex->parentEdge].idealFaceTypes) {
                     if (triangle == parentTriangle) {
                         TriangleCollection::createTriangle(
                             VertexCollection::createVertex(vertex->position),
@@ -72,7 +72,7 @@ void AgentManager::start() {
                     }
                 }
             }
-        }
+        }*/
     }
 
     std::cout << "\033[32m[OK] All constraints solved!\033[0m" << std::endl;

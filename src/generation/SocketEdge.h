@@ -1,0 +1,10 @@
+//
+// Created by Luis Alvarez on 16/09/2026.
+//
+
+#ifndef SM64_THE_MUTANT_LIMINALITY_SOCKETEDGE_H
+#define SM64_THE_MUTANT_LIMINALITY_SOCKETEDGE_H
+
+class SocketEdge {};
+
+#endif // SM64_THE_MUTANT_LIMINALITY_SOCKETEDGE_H

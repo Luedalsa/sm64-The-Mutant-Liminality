@@ -7,6 +7,7 @@
 #include "DebugExport.h"
 #include "LevelScriptManager.h"
 #include "RoomsInterfaceSolver.h"
+#include "StructuralSurface.h"
 #include "game/ingame_menu.h"
 
 inline int CASTLE_SEED = 0xDEADBEEF;
@@ -73,7 +74,10 @@ s32 castle_init(s16 arg, s32 unused) {
     level_castle_inside_entry[3] = (LevelScript)mutantCastleLevelScript;
 
     //MutantCastle mutantCastle = MutantCastle();
-    //mutantCastle.build();
+    // mutantCastle.build();
+
+    StructuralSurface surface = StructuralSurface();
+        surface.collapseDisplayList();
 
     return 0;
 }
