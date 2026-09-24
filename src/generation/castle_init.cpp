@@ -76,8 +76,5 @@ s32 castle_init(s16 arg, s32 unused) {
     //MutantCastle mutantCastle = MutantCastle();
     // mutantCastle.build();
 
-    StructuralSurface surface = StructuralSurface();
-        surface.collapseDisplayList();
-
     return 0;
 }

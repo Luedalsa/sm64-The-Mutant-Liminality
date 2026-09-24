@@ -5,6 +5,8 @@
 #include "SemanticCompiler.h"
 #include "SemanticEdge.h"
 #include "SemanticVertex.h"
+#include "StructuralEdge.h"
+#include "StructuralSurface.h"
 
 #include <cmath>
 #include <iostream>
@@ -13,6 +15,10 @@
 namespace {
 std::priority_queue<SemanticVertex *> vertexQueue;
 }
+
+StructuralSurface* pivotSurface = nullptr;
+StructuralEdge* pivotEdge = nullptr;
+RelativeTransform pivotTransform = RelativeTransform();
 
 void AgentManager::start() {
     while (!vertexQueue.empty()) vertexQueue.pop();
@@ -76,4 +82,12 @@ void AgentManager::start() {
     }
 
     std::cout << "\033[32m[OK] All constraints solved!\033[0m" << std::endl;
+
+    StructuralEdge edge = *(new StructuralEdge());
+    StructuralSurface surface = *(new StructuralSurface());
+
+    pivotEdge = &edge;
+    pivotSurface = &surface;
+
+    surface.collapseDisplayList();
 }
