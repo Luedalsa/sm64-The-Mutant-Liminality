@@ -58,6 +58,30 @@ extern "C" {
 
 } // extern "C"
 
+inline Gfx *dynamicDisplayList(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+    struct GraphNodeGenerated *generatedNode;
+    Gfx *displayListHead = NULL;
+    Gfx *displayList = NULL;
+
+    if (callContext == GEO_CONTEXT_RENDER) {
+        displayList = (Gfx*)alloc_display_list(2 * sizeof(*displayList));
+
+        if (displayList == NULL) {
+            return NULL;
+        } else {
+            displayListHead = displayList;
+        }
+
+        generatedNode = (struct GraphNodeGenerated *) node;
+        generatedNode->fnNode.node.flags = (generatedNode->fnNode.node.flags & 0xFF) | 0x500;
+
+        gSPDisplayList(displayListHead++, DisplayListManager::buildDisplayList());
+        gSPEndDisplayList(displayListHead);
+    }
+
+    return displayList;
+}
+
 class LevelScriptManager {
     static std::queue<int> trianglesQueue;
 
@@ -70,8 +94,7 @@ class LevelScriptManager {
         const GeoLayout geoBranch[] = {
             GEO_NODE_START(),
             GEO_OPEN_NODE(),
-               GEO_DISPLAY_LIST(LAYER_OPAQUE, DisplayListManager::buildDisplayList()),
-               GEO_ASM(0, geo_exec_inside_castle_light),
+               GEO_ASM(0, dynamicDisplayList),
             GEO_CLOSE_NODE(),
             GEO_RETURN(),
         };
