@@ -93,15 +93,7 @@ public:
             DisplayVertex{Vector3{1000, 0, 1000}, 0, 0, 32, Vector3{0, 1, 0}},
             DisplayVertex{Vector3{0, 0, -1000}, 0, 0, 32, Vector3{0, 1, 0}}
         }; // Placeholder
-        gSPVertex(gDisplayListHead++, &vertexBuffer[0], 3, 0);
-        vertexBuffer[0] = vertices[0];
-        vertexBuffer[1] = vertices[1];
-        vertexBuffer[2] = vertices[2];
-
-        for (size_t i = 0; i + 2 < edges.size(); i += 3) {
-            gSP1Triangle(gDisplayListHead++, i, i + 1, i + 2, 0);
-        }
-        //gGfxPool->spTask.task.t.data_ptr = (u64*)DisplayListManager::buildDisplayList();
+        DisplayListManager::addDisplayListSegment(std::vector<DisplayVertex>(vertices, vertices + 3), std::vector<std::array<int, 3>>{{0, 1, 2}}, inside_0900A000);
     }
 
     void collapseTerrain() {
