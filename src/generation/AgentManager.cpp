@@ -35,7 +35,6 @@ void AgentManager::start() {
     // ConstraintSolver consumes the same edge instances used by generation.
     // This is the integration point that was missing from the old manager.
     ConstraintSolver constraints;
-    constraints.solve(edges);
 
     SemanticVertex *root = new SemanticVertex();
     root->position = { 0, 0, 0 };
