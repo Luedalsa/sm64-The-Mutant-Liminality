@@ -29,11 +29,20 @@ struct StructuralEdge;
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
+struct Triangulation {
+    struct Leaf { StructuralEdge* boundaryEdge; };
+    struct Fork {
+        std::unique_ptr<Triangulation> left, right;
+    };
+    std::variant<Leaf, Fork> node;
+};
+
 class StructuralSurface : public Diagnosable {
 private:
     Vector3 normal;
 public:
     std::vector<StructuralEdge*> edges;
+    std::unique_ptr<Triangulation> triangulation;
     TriangleFaceType faceType = TriangleFaceType::None;
     SurfaceUVConfig uvConfig = SurfaceUVConfig{StretchUV{0, 32}};
 
