@@ -17,6 +17,7 @@ struct StructuralEdge : BaseEdge, Diagnosable {
     std::pair<StructuralSurface *, StructuralSurface *> surfaces;
     float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
 public:
+    float stableSeparation = 3.14159265358979323846f/2.0f;
     void mitosis(StructuralEdge *parent, const SemanticEdge &edge) {
     }
 
