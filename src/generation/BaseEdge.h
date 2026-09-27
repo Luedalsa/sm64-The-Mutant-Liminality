@@ -4,6 +4,7 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_BASEEDGE_H
 #define SM64_THE_MUTANT_LIMINALITY_BASEEDGE_H
+#include "Relation.h"
 #include "TriangleTypes.h"
 #include "UVModes.h"
 
@@ -21,7 +22,7 @@ struct BaseEdge {
     RelativeTransform transform{0.0f, 0, 0.0f};
 
     int32_t id = -1;
-    int32_t relation = -1;
+    Relation *relation = (new Relation{});
     float positionHint = 0.0f;
     float orientation = 0.0f;
     float size = 0.0f;

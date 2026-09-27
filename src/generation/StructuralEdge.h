@@ -15,9 +15,11 @@ class StructuralSurface;
 
 struct StructuralEdge : BaseEdge, Diagnosable {
     std::pair<StructuralSurface *, StructuralSurface *> surfaces;
+    Vector3 position = Vector3::zero();
     float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
 public:
     float stableSeparation = 3.14159265358979323846f/2.0f;
+    Vector3 getPosition() const { return position; }
     void mitosis(StructuralEdge *parent, const SemanticEdge &edge) {
     }
 
