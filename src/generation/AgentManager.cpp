@@ -74,7 +74,7 @@ void AgentManager::start() {
         edges[5].nextEdges = {&edges[1], &edges[8]};*/
 
     // Dirección inversa: cada arista sabe cuáles dos superficies la comparten.
-    edges[0].changeSurfaceA(surfaces[0]);
+    /*edges[0].changeSurfaceA(surfaces[0]);
     edges[0].changeSurfaceB(surfaces[2]);
     edges[1].changeSurfaceA(surfaces[0]);
     edges[1].changeSurfaceB(surfaces[3]);
@@ -97,7 +97,7 @@ void AgentManager::start() {
     edges[6].changeSurfaceA(surfaces[3]);
     edges[6].changeSurfaceB(surfaces[4]);
     edges[7].changeSurfaceA(surfaces[4]);
-    edges[7].changeSurfaceB(surfaces[5]);
+    edges[7].changeSurfaceB(surfaces[5]);*/
 
 
     pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);
