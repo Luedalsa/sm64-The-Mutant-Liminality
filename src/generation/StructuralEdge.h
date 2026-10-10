@@ -15,8 +15,10 @@
 class StructuralSurface;
 
 struct HalfEdge {
+private:
     StructuralSurface* surface;
     StructuralEdge* nextEdge;
+public:
     //Variable<bool> semanticallyPrecise = Variable(false, 0);
     TriangleFaceType stableSurfaceType;
 
