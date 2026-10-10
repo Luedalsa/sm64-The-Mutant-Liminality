@@ -14,21 +14,6 @@
 
 class StructuralSurface;
 
-struct HalfEdge {
-private:
-    StructuralSurface* surface;
-    StructuralEdge* nextEdge;
-public:
-    //Variable<bool> semanticallyPrecise = Variable(false, 0);
-    TriangleFaceType stableSurfaceType;
-
-    void changeSurface(StructuralSurface& newSurface) {
-        surface = &newSurface;
-    }
-
-    void changeNextEdge(StructuralEdge& edge) { nextEdge = &edge; }
-};
-
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
 // Es una invariante del sistema que cada StructuralEdge esté correctamente conectado a sus superficies y edges adyacentes, tambien reduce las vulnerabilidades en la estructura de datos en runtime, no necesita asserts y reduce la carga cognitiva de mantener toda la arquitectura en mi memoria de trabajo al momento de establecer restricciones
 struct StructuralEdge : BaseEdge, Diagnosable {
@@ -39,8 +24,27 @@ private:
     SemanticEdge* proportionalRelation = nullptr;
     SemanticEdge* semanticSeparation = nullptr;
     SemanticEdge* nearestSemantic = nullptr;
+
+    class HalfEdge {
+        friend class StructuralEdge;
+    private:
+        StructuralSurface* surface;
+        StructuralEdge* nextEdge;
+
+        HalfEdge(StructuralSurface& surface, StructuralEdge& nextEdge) : surface(&surface), nextEdge(&nextEdge) {}
+    public:
+        //Variable<bool> semanticallyPrecise = Variable(false, 0);
+        TriangleFaceType stableSurfaceType;
+
+        void changeSurface(StructuralSurface& newSurface) {
+            surface = &newSurface;
+        }
+
+        void changeNextEdge(StructuralEdge& edge) { nextEdge = &edge; }
+    };
 public:
-    StructuralEdge(StructuralSurface& surfaceA, StructuralSurface& surfaceB, StructuralEdge& nextEdgeA, StructuralEdge& nextEdgeB) /*: surfaces(&surfaceA, &surfaceB), nextEdges(&nextEdgeA, &nextEdgeB)*/ {
+    StructuralEdge(StructuralSurface& surfaceA, StructuralSurface& surfaceB, StructuralEdge& nextEdgeA, StructuralEdge& nextEdgeB)
+        : halfEdges(HalfEdge(surfaceA, nextEdgeA), HalfEdge(surfaceB, nextEdgeB)) {
         /*auto c = new NormalSeparationConstraint({surfaceA.normal, surfaceB.normal}, stableSeparation);
         surfaceA.normal.observers.push_back(c);
         surfaceB.normal.observers.push_back(c);
