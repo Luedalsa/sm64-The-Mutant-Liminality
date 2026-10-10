@@ -15,7 +15,7 @@ namespace {
 
 } // namespace
 
-void StructuralSurface::collapseDisplayList() {
+void StructuralSurface::collapseDisplayList() {/*
     if (edges.size() < 3) {
         throw NonRecoverableContradictionException("Cannot collapse display list with less than 3 edges.");
     }
@@ -30,5 +30,5 @@ void StructuralSurface::collapseDisplayList() {
         {0, 2, 3}
     };
 
-    DisplayListManager::addDisplayListSegment(vertices, triangles, inside_09001000);
+    DisplayListManager::addDisplayListSegment(vertices, triangles, inside_09001000);*/
 }

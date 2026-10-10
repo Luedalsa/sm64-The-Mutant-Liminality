@@ -12,89 +12,107 @@
 #include <iostream>
 #include <queue>
 
-namespace {
-std::priority_queue<SemanticVertex *> vertexQueue;
-}
-
+bool invalidGeometry = true;
 StructuralSurface* pivotSurface = nullptr;
 StructuralEdge* pivotEdge = nullptr;
 RelativeTransform pivotTransform = RelativeTransform();
 
+// Las estructuras de datos están diseñadas para evitar vulnerabilidades en las estructuras de datos durante la generación de geometría y solución de restricciones. evitando infernales sesiones de debug.
 void AgentManager::start() {
+    invalidGeometry = true;
     TriangleCollection::createTriangle(
         VertexCollection::createVertex({ 1, 0, 1 }),
         VertexCollection::createVertex({ 1, 0, -1 }),
         VertexCollection::createVertex({ -1, 0, -1 }),
         TriangleFaceType::CheckerboardFloor);
 
-    Relation *relation1 = (new Relation{1000.0f});
+    ProportionalRelation *relation1 = (new ProportionalRelation{1000.0f});
 
-    StructuralEdge edge11 = *(new StructuralEdge());
-    edge11.relation = relation1;
-    StructuralEdge edge12 = *(new StructuralEdge());
-    edge12.relation = relation1;
-    StructuralEdge edge13 = *(new StructuralEdge());
-    edge13.relation = relation1;
-    StructuralEdge edge14 = *(new StructuralEdge());
-    edge14.relation = relation1;
+    struct PrimitiveStructuralEdge : StructuralEdge {
+    };
 
-    StructuralEdge edge21 = *(new StructuralEdge());
-    edge21.relation = relation1;
-    StructuralEdge edge22 = *(new StructuralEdge());
-    edge22.relation = relation1;
-    StructuralEdge edge23 = *(new StructuralEdge());
-    edge23.relation = relation1;
-    StructuralEdge edge24 = *(new StructuralEdge());
-    edge24.relation = relation1;
+    StructuralEdge *edges = (StructuralEdge*)malloc(sizeof(PrimitiveStructuralEdge) * 12);
 
-    StructuralEdge edge31 = *(new StructuralEdge());
-    edge31.relation = relation1;
-    StructuralEdge edge32 = *(new StructuralEdge());
-    edge32.relation = relation1;
-    StructuralEdge edge33 = *(new StructuralEdge());
-    edge33.relation = relation1;
-    StructuralEdge edge34 = *(new StructuralEdge());
-    edge34.relation = relation1;
+    edges[0].relation = relation1;
+    edges[1].relation = relation1;
+    edges[2].relation = relation1;
+    edges[3].relation = relation1;
 
-    StructuralSurface surface1 = std::move(*new StructuralSurface());
-    surface1.edges = {&edge11, &edge12, &edge13, &edge14};
+    edges[4].relation = relation1;
+    edges[5].relation = relation1;
+    edges[6].relation = relation1;
+    edges[7].relation = relation1;
 
-    StructuralSurface surface2 = std::move(*new StructuralSurface()); // techo
-    surface2.edges = {&edge31, &edge32, &edge33, &edge34};
+    edges[8].relation = relation1;
+    edges[9].relation = relation1;
+    edges[10].relation = relation1;
+    edges[11].relation = relation1;
 
-    StructuralSurface surface3 = std::move(*new StructuralSurface()); // pared 1
-    surface3.edges = {&edge11, &edge22, &edge31, &edge21};
+    for (int i = 0; i < 12; ++i) {
+        edges[i].stableSeparation = 3.14159265358979323846f / 2.0f;
+        edges[i].idealSeparation = 3.14159265358979323846f / 2.0f;
+    }
 
-    StructuralSurface surface4 = std::move(*new StructuralSurface()); // pared 2
-    surface4.edges = {&edge12, &edge23, &edge32, &edge22};
 
-    StructuralSurface surface5 = std::move(*new StructuralSurface()); // pared 3
-    surface5.edges = {&edge13, &edge24, &edge33, &edge23};
+    struct PrimitiveStructuralSurface : StructuralSurface {
+    };
 
-    StructuralSurface surface6 = std::move(*new StructuralSurface()); // pared 4
-    surface6.edges = {&edge14, &edge21, &edge34, &edge24};
+    static PrimitiveStructuralSurface surfaces[6] = {};
+/*
+    surfaces[0].edges = {&edges[0], &edges[1], &edges[2], &edges[3]};
+    surfaces[1].edges = {&edges[8], &edges[9], &edges[10], &edges[11]};
+    surfaces[2].edges = {&edges[0], &edges[5], &edges[8], &edges[4]};
+    surfaces[3].edges = {&edges[1], &edges[6], &edges[9], &edges[5]};
+    surfaces[4].edges = {&edges[2], &edges[7], &edges[10], &edges[6]};
+    surfaces[5].edges = {&edges[3], &edges[4], &edges[11], &edges[7]};
+
+    edges[0].nextEdges = {&edges[1], &edges[5]};
+        edges[1].nextEdges = {&edges[2], &edges[6]};
+        edges[2].nextEdges = {&edges[3], &edges[7]};
+        edges[3].nextEdges = {&edges[0], &edges[4]};
+        edges[4].nextEdges = {&edges[0], &edges[11]};
+        edges[5].nextEdges = {&edges[1], &edges[8]};*/
 
     // Dirección inversa: cada arista sabe cuáles dos superficies la comparten.
-    edge11.surfaces = {&surface1, &surface3};
-    edge12.surfaces = {&surface1, &surface4};
-    edge13.surfaces = {&surface1, &surface5};
-    edge14.surfaces = {&surface1, &surface6};
+    edges[0].changeSurfaceA(surfaces[0]);
+    edges[0].changeSurfaceB(surfaces[2]);
+    edges[1].changeSurfaceA(surfaces[0]);
+    edges[1].changeSurfaceB(surfaces[3]);
+    edges[2].changeSurfaceA(surfaces[0]);
+    edges[2].changeSurfaceB(surfaces[4]);
+    edges[3].changeSurfaceA(surfaces[0]);
+    edges[3].changeSurfaceB(surfaces[5]);
+    edges[8].changeSurfaceA(surfaces[1]);
+    edges[8].changeSurfaceB(surfaces[2]);
+    edges[9].changeSurfaceA(surfaces[1]);
+    edges[9].changeSurfaceB(surfaces[3]);
+    edges[10].changeSurfaceA(surfaces[1]);
+    edges[10].changeSurfaceB(surfaces[4]);
+    edges[11].changeSurfaceA(surfaces[1]);
+    edges[11].changeSurfaceB(surfaces[5]);
+    edges[4].changeSurfaceA(surfaces[2]);
+    edges[4].changeSurfaceB(surfaces[5]);
+    edges[5].changeSurfaceA(surfaces[2]);
+    edges[5].changeSurfaceB(surfaces[3]);
+    edges[6].changeSurfaceA(surfaces[3]);
+    edges[6].changeSurfaceB(surfaces[4]);
+    edges[7].changeSurfaceA(surfaces[4]);
+    edges[7].changeSurfaceB(surfaces[5]);
 
-    edge31.surfaces = {&surface2, &surface3};
-    edge32.surfaces = {&surface2, &surface4};
-    edge33.surfaces = {&surface2, &surface5};
-    edge34.surfaces = {&surface2, &surface6};
 
-    edge21.surfaces = {&surface3, &surface6};
-    edge22.surfaces = {&surface3, &surface4};
-    edge23.surfaces = {&surface4, &surface5};
-    edge24.surfaces = {&surface5, &surface6};
-
-    pivotEdge = &edge11;
-    pivotSurface = &surface1;
+    pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);
+    pivotSurface = reinterpret_cast<StructuralSurface*>(&surfaces[0]);
     pivotTransform = RelativeTransform{1000.0f, 3.141592f/2.0f, 0.0f};
-
-    //Structural edge position collapse
-
-    surface1.collapseDisplayList();
+/*
+    pivotSurface->normal.set(Vector3(0, 1, 0));
+    pivotSurface->normal.setPriority(ConstraintSolver::currentFrame);
+    pivotEdge->position.set(Vector3(1000, 0, 0));
+    pivotEdge->position.setPriority(ConstraintSolver::currentFrame);
+        nextEdges.first->position = Vector3(pos.x + transform.distance * cos(transform.yaw),
+                                            pos.y + transform.height,
+                                            pos.z + transform.distance * sin(transform.yaw));
+        nextEdges.first->position.priority = ConstraintSolver::currentFrame;
+    StructuralEdge* next = (pivotEdge->getSurfaces().first == pivotSurface ? pivotEdge->getNextEdges().first : pivotEdge->getNextEdges().second);
+    next->setPosition(Vector3(1000, 0, 1000));*/
+    reinterpret_cast<StructuralSurface*>(&surfaces[0])->collapseDisplayList();
 }

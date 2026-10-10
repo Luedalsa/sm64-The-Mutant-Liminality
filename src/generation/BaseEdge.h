@@ -12,9 +12,9 @@
 
 struct RelativeTransform
 {
-    float distance;
-    float yaw;
-    float height;
+    float distance = 0.0f;
+    float yaw = 0.0f;
+    float height = 0.0f;
 };
 
 struct BaseEdge {
@@ -22,7 +22,7 @@ struct BaseEdge {
     RelativeTransform transform{0.0f, 0, 0.0f};
 
     int32_t id = -1;
-    Relation *relation = (new Relation{});
+    ProportionalRelation *relation = (new ProportionalRelation{});
     float positionHint = 0.0f;
     float orientation = 0.0f;
     float size = 0.0f;

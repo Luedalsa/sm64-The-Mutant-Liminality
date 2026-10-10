@@ -5,13 +5,11 @@
 #ifndef SM64_THE_MUTANT_LIMINALITY_STRUCTURALSURFACE_H
 #define SM64_THE_MUTANT_LIMINALITY_STRUCTURALSURFACE_H
 
+#include "Dependent.h"
 #include "Diagnosable.h"
-#include "DisplayListManager.h"
 #include "NonRecoverableContradictionException.h"
-#include "Primitives.h"
 #include "TriangleTypes.h"
 #include "UVModes.h"
-#include "game/game_init.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,35 +39,29 @@ struct Triangulation {
 };
 
 class StructuralSurface : public Diagnosable {
-private:
-    Vector3 normal;
 public:
-    std::vector<StructuralEdge*> edges;
+    Theta theta = Theta(0);
+    Theta phi = Theta(0);
+    SphericalDirection normal = SphericalDirection(theta, phi, 0);
+    StructuralSurface() {
+    }
+    ~StructuralSurface() {
+        throw NonRecoverableContradictionException("StructuralSurface destructor called. This should not happen, as StructuralSurfaces are managed by the system and should not be deleted manually.");
+    };
+
     std::unique_ptr<Triangulation> triangulation;
     TriangleFaceType faceType = TriangleFaceType::None;
     SurfaceUVConfig uvConfig = SurfaceUVConfig{StretchUV{0, 32}};
-
-    Vector3 getNormal() const {
-        if (edges.size() < 3) {
-            throw NonRecoverableContradictionException("Cannot compute surface normal with less than 3 edges.");
-        }
-        return normal;
-    }
-
+/*
     void diagnose() override {
         if (edges.size() < 3) {
             addDiagnostic(Diagnostic::NOT_SATISFIED_SURFACES_EDGES);
         }
     }
-
+*/
     void collapseDisplayList();
 
     void collapseTerrain() {
-        if (edges.size() < 3) {
-            throw NonRecoverableContradictionException("Cannot collapse terrain with less than 3 edges.");
-        }
-        for (auto edge : edges) {
-        }
     }
 };
 

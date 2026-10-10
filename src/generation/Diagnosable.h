@@ -4,6 +4,8 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_DIAGNOSABLE_H
 #define SM64_THE_MUTANT_LIMINALITY_DIAGNOSABLE_H
+//#include "Constraintsolver.h"
+
 #include <string>
 #include <vector>
 
@@ -15,15 +17,22 @@ enum class Diagnostic {
     NOT_SATISFIED_SURFACES_EDGES,
 };
 
+class Constraint;
+
 struct Diagnosable {
-std::vector<Diagnostic> diagnostics;
+    static std::vector<Diagnostic> diagnostics;
+    static std::vector<Constraint*> constraints;
 public:
-virtual ~Diagnosable() = default;
-    virtual void diagnose() = 0;
-    void addDiagnostic(Diagnostic diagnostic) {
+    static void addDiagnostic(Diagnostic diagnostic) {
         diagnostics.emplace_back(diagnostic);
     }
-    const std::vector<Diagnostic>& getDiagnostics() const {
+    static void addViolatedConstraint(Constraint* constraint) {
+        constraints.emplace_back(constraint);
+    }
+    static const std::vector<Constraint*>& getConstraints() {
+        return constraints;
+    }
+    static const std::vector<Diagnostic>& getDiagnostics() {
         return diagnostics;
     }
 };
