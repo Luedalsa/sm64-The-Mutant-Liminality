@@ -40,9 +40,7 @@ struct Triangulation {
 
 class StructuralSurface : public Diagnosable {
 public:
-    Theta theta = Theta(0);
-    Theta phi = Theta(0);
-    SphericalDirection normal = SphericalDirection(theta, phi, 0);
+    Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
     StructuralSurface() {
     }
     ~StructuralSurface() {
