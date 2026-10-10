@@ -26,7 +26,7 @@ private:
     SemanticEdge* nearestSemantic = nullptr;
 
     class HalfEdge {
-        friend class StructuralEdge;
+        friend struct StructuralEdge;
     private:
         StructuralSurface* surface;
         StructuralEdge* nextEdge;
