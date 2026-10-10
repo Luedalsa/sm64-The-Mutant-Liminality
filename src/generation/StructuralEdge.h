@@ -19,6 +19,10 @@ struct HalfEdge {
     StructuralEdge* nextEdge;
     //Variable<bool> semanticallyPrecise = Variable(false, 0);
     TriangleFaceType stableSurfaceType;
+
+    void changeSurface(StructuralSurface& newSurface) {
+        surface = &newSurface;
+    }
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
@@ -68,18 +72,6 @@ public:
     float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
     Theta stableSeparation = Theta(3.14159265358979323846f/2.0f); // 90 degrees in radians
     Length semanticTension = Length(0);
-    void changeSurfaceA(StructuralSurface& surface) {
-        /*if (surfaces.second == &surface) {
-            throw NonRecoverableContradictionException("Cannot change surface when both surfaces are the same. This would create an invalid edge configuration.");
-        }
-        surfaces.first = &surface;*/
-    }
-    void changeSurfaceB(StructuralSurface& surface) {
-        /*if (surfaces.first == &surface) {
-            throw NonRecoverableContradictionException("Cannot change surface when both surfaces are the same. This would create an invalid edge configuration.");
-        }
-        surfaces.second = &surface;*/
-    }
     /*std::pair<StructuralSurface*, StructuralSurface*> getSurfaces() const { return surfaces; }
     void changeNextEdgeA(StructuralEdge& edge) { nextEdges.first = &edge; }
     void changeNextEdgeB(StructuralEdge& edge) { nextEdges.second = &edge; }
