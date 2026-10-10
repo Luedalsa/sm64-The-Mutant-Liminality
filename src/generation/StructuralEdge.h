@@ -65,10 +65,7 @@ public:
     };
 
     std::pair<HalfEdge, HalfEdge> halfEdges;
-    VAxis x = VAxis(0);
-    VAxis y = VAxis(0);
-    VAxis z = VAxis(0);
-    //VVector3 position = VVector3(x, y, z, INT32_MAX);
+    VAxis position[3] = {VAxis(0), VAxis(0), VAxis(0)};
     float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
     Theta stableSeparation = Theta(3.14159265358979323846f/2.0f); // 90 degrees in radians
     Length semanticTension = Length(0);
