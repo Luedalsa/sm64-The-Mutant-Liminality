@@ -23,6 +23,8 @@ struct HalfEdge {
     void changeSurface(StructuralSurface& newSurface) {
         surface = &newSurface;
     }
+
+    void changeNextEdge(StructuralEdge& edge) { nextEdge = &edge; }
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
@@ -69,10 +71,6 @@ public:
     float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
     Theta stableSeparation = Theta(3.14159265358979323846f/2.0f); // 90 degrees in radians
     Length semanticTension = Length(0);
-    /*std::pair<StructuralSurface*, StructuralSurface*> getSurfaces() const { return surfaces; }
-    void changeNextEdgeA(StructuralEdge& edge) { nextEdges.first = &edge; }
-    void changeNextEdgeB(StructuralEdge& edge) { nextEdges.second = &edge; }
-    std::pair<StructuralEdge*, StructuralEdge*> getNextEdges() const { return nextEdges; }*/
     void mitosis(StructuralEdge *parent, const SemanticEdge &edge) {
         /*auto newEdge = new StructuralEdge(*surfaces.first, *surfaces.second, *nextEdges.first, *nextEdges.second);
         newEdge->idealSeparation = idealSeparation;
