@@ -51,7 +51,7 @@ void AgentManager::start() {
     }
 
     static StructuralSurface surfaces[6] = {};
-
+/*
     // S0: tapa inferior (invertida respecto a los lados)
     edges[0].halfEdges.first.changeNextEdge(edges[3]);
     edges[3].halfEdges.first.changeNextEdge(edges[2]);
@@ -113,7 +113,7 @@ void AgentManager::start() {
     edges[6].halfEdges.second.changeSurface(surfaces[4]);
     edges[7].halfEdges.first.changeSurface(surfaces[4]);
     edges[7].halfEdges.second.changeSurface(surfaces[5]);
-
+*/
 
 
     pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);

@@ -29,6 +29,16 @@ struct NormalSeparationConstraint : public Constraint {
     NormalSeparationConstraint(const DirectionAndSeparation& edgeDirectionAndSeparation, SphericalDirection& normalA, SphericalDirection& normalB)
         : edgeDirectionAndSeparation(edgeDirectionAndSeparation), normalA(normalA), normalB(normalB) {}
 
+    float calculateConstraint() override {/*
+        // Calculate the angular separation between normalA and normalB
+        float angularSeparation = std::acos(std::sin(normalA.get().theta) * std::sin(normalB.get().theta) +
+                                            std::cos(normalA.get().theta) * std::cos(normalB.get().theta) *
+                                            std::cos(normalA.get().phi - normalB.get().phi));
+        // Compare it with the required separation from edgeDirectionAndSeparation
+        float requiredSeparation = edgeDirectionAndSeparation.get().angularSeparation;
+        return angularSeparation - requiredSeparation; // Positive if violated, negative if satisfied*/
+    }
+
     SolutionStatus solve() override {/*
         if (normalA.getPriority() == normalB.getPriority()) {
             return SolutionStatus::POSTPONED;
@@ -229,6 +239,9 @@ public:
                 SolutionStatus status = constraint->solve();
                 if (status == SolutionStatus::SUCCESS) {
                     constraint->state = ConstraintState::SATISFIED;
+                    if (!constraint->isIdentity()) {
+                        throw NonRecoverableContradictionException("ConstraintSolver: Constraint is not in identity state after success solving.");
+                    }
                     //Diagnosable::getConstraints().erase(Diagnosable::constraints.begin());
                     /*if (constraint->severity == ConstraintViolationSeverity::GeometricallyUnrepresentable) {
                     }*/
