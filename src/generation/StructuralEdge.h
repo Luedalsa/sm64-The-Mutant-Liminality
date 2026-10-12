@@ -16,27 +16,19 @@ class StructuralSurface;
 struct BiologicalAbomination;
 
 class HalfEdge {
-    friend struct StructuralEdge;
 private:
     StructuralSurface* surface;
-    StructuralEdge* nextEdge;
-    HalfEdge* twin;
+    HalfEdge* nextEdge;
 
-    friend class BiologicalAbomination;
+    friend struct BiologicalAbomination;
 public:
     //Variable<bool> semanticallyPrecise = Variable(false, 0);
     TriangleFaceType stableSurfaceType;
-
-    void changeSurface(StructuralSurface& newSurface) {
-        surface = &newSurface;
-    }
-
-    void changeNextEdge(StructuralEdge& edge) { nextEdge = &edge; }
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
 // Es una invariante del sistema que cada StructuralEdge esté correctamente conectado a sus superficies y edges adyacentes, tambien reduce las vulnerabilidades en la estructura de datos en runtime, no necesita asserts y reduce la carga cognitiva de mantener toda la arquitectura en mi memoria de trabajo al momento de establecer restricciones
-struct StructuralEdge : BaseEdge, Diagnosable {
+struct Edge : BaseEdge, Diagnosable {
 private:
     SemanticEdge* surfaceTypes = nullptr;
     SemanticEdge* edgeLength = nullptr;
@@ -74,7 +66,7 @@ private:
         throw NonRecoverableContradictionException("StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
     };*/
 
-    friend class BiologicalAbomination;
+    friend struct BiologicalAbomination;
 public:
 
     VAxis position[3] = {VAxis(0), VAxis(0), VAxis(0)};
@@ -83,9 +75,22 @@ public:
     Length semanticTension = Length(0);
 };
 
+struct StructuralEdge {
+private:
+    StructuralEdge() {
+        halfEdges[0] = HalfEdge();
+        halfEdges[1] = HalfEdge();
+        edge = Edge();
+    }
+    friend struct BiologicalAbomination;
+public:
+    HalfEdge halfEdges[2];
+    Edge edge;
+};
+
 
 struct BiologicalAbomination {
-    static void mitosis(StructuralEdge& parent, const SemanticEdge &edge, HalfEdge& outHalfEdgeA, HalfEdge& outHalfEdgeB, StructuralEdge& outStructuralEdge) {
+    static void mitosis(StructuralEdge structuralEdge, StructuralEdge*& outStructuralEdge) {
         /*auto newEdge = new StructuralEdge(*surfaces.first, *surfaces.second, *nextEdges.first, *nextEdges.second);
         newEdge->idealSeparation = idealSeparation;
         newEdge->stableSeparation = stableSeparation;
@@ -93,9 +98,49 @@ struct BiologicalAbomination {
         newEdge->position.setPriority(ConstraintSolver::currentFrame);
         newEdge->relation = relation;*/
 
-        outHalfEdgeA = *(new HalfEdge());
-        outHalfEdgeB = *(new HalfEdge());
-        outStructuralEdge = *(new StructuralEdge());
+        auto newEdge = new StructuralEdge();
+
+        newEdge->halfEdges[0].surface = structuralEdge.halfEdges[0].surface;
+        newEdge->halfEdges[0].nextEdge = structuralEdge.halfEdges[0].nextEdge;
+
+        structuralEdge.halfEdges[0].nextEdge = &newEdge->halfEdges[0];
+        newEdge->halfEdges[1].surface = structuralEdge.halfEdges[1].surface;
+        newEdge->halfEdges[1].nextEdge = structuralEdge.halfEdges[1].nextEdge;
+        structuralEdge.halfEdges[1].nextEdge = &newEdge->halfEdges[1];
+
+        outStructuralEdge = newEdge;
+    }
+
+    static void fold(StructuralEdge& edgeA, StructuralEdge& edgeB, StructuralEdge*& outStructuralEdge, StructuralSurface*& outStructuralSurface) {
+        StructuralEdge* newEdge = new StructuralEdge();
+
+        StructuralSurface* newSurface = new StructuralSurface();
+
+        // find common half edge
+        if (edgeA.halfEdges[0].surface == edgeB.halfEdges[0].surface) {
+            newEdge->halfEdges[0] = edgeA.halfEdges[0];
+            newEdge->halfEdges[1] = edgeB.halfEdges[0];
+            newSurface = edgeA.halfEdges[0].surface;
+        } else if (edgeA.halfEdges[0].surface == edgeB.halfEdges[1].surface) {
+            newEdge->halfEdges[0] = edgeA.halfEdges[0];
+            newEdge->halfEdges[1] = edgeB.halfEdges[1];
+            newSurface = edgeA.halfEdges[0].surface;
+        } else if (edgeA.halfEdges[1].surface == edgeB.halfEdges[0].surface) {
+            newEdge->halfEdges[0] = edgeA.halfEdges[1];
+            newEdge->halfEdges[1] = edgeB.halfEdges[0];
+            newSurface = edgeA.halfEdges[1].surface;
+        } else if (edgeA.halfEdges[1].surface == edgeB.halfEdges[1].surface) {
+            newEdge->halfEdges[0] = edgeA.halfEdges[1];
+            newEdge->halfEdges[1] = edgeB.halfEdges[1];
+            newSurface = edgeA.halfEdges[1].surface;
+        } else {
+            throw NonRecoverableContradictionException("Cannot fold edges: no common surface found.");
+        }
+
+        // TODO complete
+
+        outStructuralEdge = newEdge;
+        outStructuralSurface = newSurface;
     }
 };
 

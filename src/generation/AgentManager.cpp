@@ -29,7 +29,7 @@ void AgentManager::start() {
     ProportionalRelation *relation1 = (new ProportionalRelation{1000.0f});
 
     StructuralEdge *edges = (StructuralEdge*)malloc(sizeof(StructuralEdge) * 12);
-
+/*
     edges[0].relation = relation1;
     edges[1].relation = relation1;
     edges[2].relation = relation1;
@@ -48,7 +48,7 @@ void AgentManager::start() {
     for (int i = 0; i < 12; ++i) {
         edges[i].stableSeparation = 3.14159265358979323846f / 2.0f;
         edges[i].idealSeparation = 3.14159265358979323846f / 2.0f;
-    }
+    }*/
 
     static StructuralSurface surfaces[6] = {};
 /*
@@ -115,11 +115,10 @@ void AgentManager::start() {
     edges[7].halfEdges.second.changeSurface(surfaces[5]);
 */
 
-    StructuralEdge e;
-    HalfEdge he1;
-    HalfEdge he2;
+    StructuralEdge* e = (StructuralEdge*)malloc(sizeof(StructuralEdge));
+    StructuralEdge* e2;
 
-    BiologicalAbomination::mitosis(e, SemanticEdge(), he1, he2, e);
+    BiologicalAbomination::mitosis(*e, e2);
 
 
     pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);
