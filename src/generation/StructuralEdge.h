@@ -22,8 +22,6 @@ private:
     StructuralEdge* nextEdge;
     HalfEdge* twin;
 
-    HalfEdge(StructuralSurface& surface, StructuralEdge& nextEdge) : surface(&surface), nextEdge(&nextEdge) {}
-
     friend class BiologicalAbomination;
 public:
     //Variable<bool> semanticallyPrecise = Variable(false, 0);
@@ -87,13 +85,17 @@ public:
 
 
 struct BiologicalAbomination {
-    void mitosis(StructuralEdge *parent, const SemanticEdge &edge, HalfEdge& outHalfEdgeA, HalfEdge& outHalfEdgeB, StructuralEdge& outStructuralEdge) {
+    static void mitosis(StructuralEdge& parent, const SemanticEdge &edge, HalfEdge& outHalfEdgeA, HalfEdge& outHalfEdgeB, StructuralEdge& outStructuralEdge) {
         /*auto newEdge = new StructuralEdge(*surfaces.first, *surfaces.second, *nextEdges.first, *nextEdges.second);
         newEdge->idealSeparation = idealSeparation;
         newEdge->stableSeparation = stableSeparation;
         newEdge->position = position;
         newEdge->position.setPriority(ConstraintSolver::currentFrame);
         newEdge->relation = relation;*/
+
+        outHalfEdgeA = *(new HalfEdge());
+        outHalfEdgeB = *(new HalfEdge());
+        outStructuralEdge = *(new StructuralEdge());
     }
 };
 

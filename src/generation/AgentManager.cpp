@@ -115,6 +115,12 @@ void AgentManager::start() {
     edges[7].halfEdges.second.changeSurface(surfaces[5]);
 */
 
+    StructuralEdge e;
+    HalfEdge he1;
+    HalfEdge he2;
+
+    BiologicalAbomination::mitosis(e, SemanticEdge(), he1, he2, e);
+
 
     pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);
     pivotSurface = reinterpret_cast<StructuralSurface*>(&surfaces[0]);
