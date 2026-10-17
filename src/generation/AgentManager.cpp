@@ -115,14 +115,17 @@ void AgentManager::start() {
     edges[7].halfEdges.second.changeSurface(surfaces[5]);
 */
 
-    StructuralEdge* e = (StructuralEdge*)malloc(sizeof(StructuralEdge));
-    StructuralEdge* e2;
+    auto* e = static_cast<StructuralEdge *>(malloc(sizeof(StructuralEdge)));
+    std::vector<StructuralEdge*> e2;
+    StructuralSurface* newSurfaceA;
+    StructuralSurface* newSurfaceB;
+    StructuralSurface* newSurfaceC;
 
-    BiologicalAbomination::mitosis(*e, e2);
+    BiologicalAbomination::birth(e, newSurfaceA, newSurfaceB);
+    BiologicalAbomination::mitosis(e->getHalfEdge(0), e->getHalfEdge(1), e2, newSurfaceC);
 
-
-    pivotEdge = reinterpret_cast<StructuralEdge*>(&edges[0]);
-    pivotSurface = reinterpret_cast<StructuralSurface*>(&surfaces[0]);
+    pivotEdge = e;
+    pivotSurface = newSurfaceA;
     pivotTransform = RelativeTransform{1000.0f, 3.141592f/2.0f, 0.0f};
 /*
     pivotSurface->normal.set(Vector3(0, 1, 0));
@@ -135,5 +138,5 @@ void AgentManager::start() {
         nextEdges.first->position.priority = ConstraintSolver::currentFrame;
     StructuralEdge* next = (pivotEdge->getSurfaces().first == pivotSurface ? pivotEdge->getNextEdges().first : pivotEdge->getNextEdges().second);
     next->setPosition(Vector3(1000, 0, 1000));*/
-    reinterpret_cast<StructuralSurface*>(&surfaces[0])->collapseDisplayList();
+    newSurfaceA->collapseDisplayList();
 }

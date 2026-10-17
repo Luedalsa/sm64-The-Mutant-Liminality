@@ -39,6 +39,10 @@ struct NormalSeparationConstraint : public Constraint {
         return angularSeparation - requiredSeparation; // Positive if violated, negative if satisfied*/
     }
 
+    float getConstraintTension() override {
+        //return std::max(normalA.getPriority(), normalB.getPriority());
+    }
+
     SolutionStatus solve() override {/*
         if (normalA.getPriority() == normalB.getPriority()) {
             return SolutionStatus::POSTPONED;
@@ -224,17 +228,28 @@ struct InfiniteTravelInvariant : public Constraint {
     }
 };*/
 
+// TODO: Necesito que algo tenga la responsabilidad de trackear los procesos de mitosis para asegurarse de que la superficie que van copiando terminen con un half edge paralelo o con una suma angular neta de 0°
+struct NetAngleBundaryConstraint : public Constraint {
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::TotallyUnrepresentable;
+    }
+
+    SolutionStatus solve() override {
+    }
+};
+
 class ConstraintSolver {
 public:
     static int currentFrame;
 
     static void checkAndSolve() {
         currentFrame++;
-        while (true) { // TODO while there are totally unrepresentable states do
+        bool continueSolving = true;
+        while (continueSolving) {
             if (Diagnosable::getConstraints().empty()) {
                 throw NonRecoverableContradictionException("ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
             }
-            auto constraint = Diagnosable::getConstraints()[0];
+            auto constraint = Diagnosable::getConstraints().top();
             if (constraint->state == ConstraintState::VIOLATED) {
                 SolutionStatus status = constraint->solve();
                 if (status == SolutionStatus::SUCCESS) {
@@ -258,6 +273,7 @@ public:
             } else {
                 throw NonRecoverableContradictionException("ConstraintSolver: Constraint is not in CONTRADICTION state when checking constraints. Diagnoser didnt do a good job.");
             }
+            continueSolving = Diagnosable::getConstraints().top()->getSeverity() == ConstraintViolationSeverity::TotallyUnrepresentable;
         }
     }
 };

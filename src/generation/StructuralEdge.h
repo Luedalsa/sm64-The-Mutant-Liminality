@@ -7,6 +7,7 @@
 #include "BaseEdge.h"
 #include "Constraintsolver.h"
 #include "Diagnosable.h"
+#include "Inherited.h"
 #include "SemanticEdge.h"
 #include "StructuralSurface.h"
 
@@ -14,22 +15,45 @@
 
 class StructuralSurface;
 struct BiologicalAbomination;
+struct BoundaryLoop;
 
 class HalfEdge {
 private:
-    StructuralSurface* surface;
-    HalfEdge* nextEdge;
+    HalfEdge(StructuralEdge& e, BoundaryLoop& s, HalfEdge& n) : boundaryLoop(&s), nextEdge(&n), structuralEdge(e) {}
 
+    BoundaryLoop* boundaryLoop;
+    HalfEdge* nextEdge; // This value must NEVER be null
+    friend struct StructuralEdge;
     friend struct BiologicalAbomination;
 public:
-    //Variable<bool> semanticallyPrecise = Variable(false, 0);
+    //Variable<bool> semanticallyPrecise = Variable(false, 0); I forgor what dis does
     TriangleFaceType stableSurfaceType;
+    StructuralEdge& structuralEdge;
+
+    HalfEdge& walk() const {
+        return *nextEdge;
+    }
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
 // Es una invariante del sistema que cada StructuralEdge esté correctamente conectado a sus superficies y edges adyacentes, tambien reduce las vulnerabilidades en la estructura de datos en runtime, no necesita asserts y reduce la carga cognitiva de mantener toda la arquitectura en mi memoria de trabajo al momento de establecer restricciones
-struct Edge : BaseEdge, Diagnosable {
+struct StructuralEdge : BaseEdge, Diagnosable {
 private:
+    StructuralEdge(StructuralEdge & structuralEdge)
+      : halfEdges{ HalfEdge(*this, *structuralEdge.halfEdges[0].boundaryLoop,
+                            *structuralEdge.halfEdges[0].nextEdge),
+                   HalfEdge(*this, *structuralEdge.halfEdges[1].boundaryLoop,
+                            *structuralEdge.halfEdges[1].nextEdge) },
+        surfaceTypes(structuralEdge.surfaceTypes),
+        edgeLength(structuralEdge.edgeLength),
+        lengthOverload(structuralEdge.lengthOverload),
+        proportionalRelation(structuralEdge.proportionalRelation),
+        position{ structuralEdge.position[0], structuralEdge.position[1], structuralEdge.position[2] },
+        stableSeparation(structuralEdge.stableSeparation),
+        semanticTension(structuralEdge.semanticTension) {
+
+    }
+    HalfEdge halfEdges[2];
     SemanticEdge* surfaceTypes = nullptr;
     SemanticEdge* edgeLength = nullptr;
     float lengthOverload = 0.0f;
@@ -69,28 +93,57 @@ private:
     friend struct BiologicalAbomination;
 public:
 
+    HalfEdge& getHalfEdge(int index) {
+        if (index < 0 || index > 1) {
+            throw std::out_of_range("HalfEdge index must be 0 or 1.");
+        }
+        return halfEdges[index];
+    }
     VAxis position[3] = {VAxis(0), VAxis(0), VAxis(0)};
-    float idealSeparation = 3.14159265358979323846f/2.0f; // 90 degrees in radians
-    Theta stableSeparation = Theta(3.14159265358979323846f/2.0f); // 90 degrees in radians
+    float stableSeparation;
     Length semanticTension = Length(0);
 };
 
-struct StructuralEdge {
-private:
-    StructuralEdge() {
-        halfEdges[0] = HalfEdge();
-        halfEdges[1] = HalfEdge();
-        edge = Edge();
+struct BoundaryLoop {
+    StructuralSurface& surface;
+    HalfEdge& edge;
+
+    [[nodiscard]] int getEdgeCount() const { // TODO temp maybe
+        int count = 0;
+        HalfEdge* currentEdge = &edge;
+        do {
+            count++;
+            currentEdge = &currentEdge->walk();
+        } while (currentEdge != &edge);
+        return count;
     }
-    friend struct BiologicalAbomination;
-public:
-    HalfEdge halfEdges[2];
-    Edge edge;
 };
 
+// La cantidad de operadores debe ser el mínimo posible
 
+// Mudando a operadores b-rep Euler
+// Operadores topológicos: mitosis, fold
+// Operadores semánticos: heredar de otra arista, relaciones, proporciones, angulos, textura
+// operadores propagadores: resuelven mediante ecuaciones de las restricciones a traves de las variable y scalar, propagando cambios a otras aristas y superficies
+
+// Invariante: La geometría se renderiza entre cada operación, por lo que los operadores deben recibir geometría renderizable y devolver geometría renderizable.
+// TODO Nueva invariante: la geometría es un grafo de grado >=3, cada uno de los vértices de la geometría debe estar conectado a más de 2 aristas, y cada arista debe estar conectada a exactamente 2 superficies. La estructura de datos y los operadores deben reflejarla
 struct BiologicalAbomination {
-    static void mitosis(StructuralEdge structuralEdge, StructuralEdge*& outStructuralEdge) {
+    static void birth(StructuralEdge*& outStructuralEdge, StructuralSurface*& outNewSurfaceA, StructuralSurface*& outNewSurfaceB) {
+        outStructuralEdge = new StructuralEdge(*outStructuralEdge);
+        outNewSurfaceA = new StructuralSurface();
+        outNewSurfaceB = new StructuralSurface();
+        outStructuralEdge->halfEdges[0].boundaryLoop = new BoundaryLoop{*outNewSurfaceA, outStructuralEdge->halfEdges[0]};
+        outStructuralEdge->halfEdges[1].boundaryLoop = new BoundaryLoop{*outNewSurfaceB, outStructuralEdge->halfEdges[1]};
+        outStructuralEdge->halfEdges[0].nextEdge = &outStructuralEdge->halfEdges[0];
+        outStructuralEdge->halfEdges[1].nextEdge = &outStructuralEdge->halfEdges[1];
+
+        //  FIXME other properties are UB, do not access before inheriting
+    }
+
+    // La posición del nuevo edge siempre será indefinida, activará un TotallyUnrepresentableState.
+    // Los structural edges de salida serán promesas que heredarán semántica, no están listos para ser usados.
+    static void mitosis(HalfEdge& halfEdgeA, HalfEdge& halfEdgeB, std::vector<StructuralEdge*>& outStructuralEdges, StructuralSurface*& outNewSurface) {
         /*auto newEdge = new StructuralEdge(*surfaces.first, *surfaces.second, *nextEdges.first, *nextEdges.second);
         newEdge->idealSeparation = idealSeparation;
         newEdge->stableSeparation = stableSeparation;
@@ -98,49 +151,91 @@ struct BiologicalAbomination {
         newEdge->position.setPriority(ConstraintSolver::currentFrame);
         newEdge->relation = relation;*/
 
-        auto newEdge = new StructuralEdge();
-
-        newEdge->halfEdges[0].surface = structuralEdge.halfEdges[0].surface;
-        newEdge->halfEdges[0].nextEdge = structuralEdge.halfEdges[0].nextEdge;
-
-        structuralEdge.halfEdges[0].nextEdge = &newEdge->halfEdges[0];
-        newEdge->halfEdges[1].surface = structuralEdge.halfEdges[1].surface;
-        newEdge->halfEdges[1].nextEdge = structuralEdge.halfEdges[1].nextEdge;
-        structuralEdge.halfEdges[1].nextEdge = &newEdge->halfEdges[1];
-
-        outStructuralEdge = newEdge;
-    }
-
-    static void fold(StructuralEdge& edgeA, StructuralEdge& edgeB, StructuralEdge*& outStructuralEdge, StructuralSurface*& outStructuralSurface) {
-        StructuralEdge* newEdge = new StructuralEdge();
-
-        StructuralSurface* newSurface = new StructuralSurface();
-
-        // find common half edge
-        if (edgeA.halfEdges[0].surface == edgeB.halfEdges[0].surface) {
-            newEdge->halfEdges[0] = edgeA.halfEdges[0];
-            newEdge->halfEdges[1] = edgeB.halfEdges[0];
-            newSurface = edgeA.halfEdges[0].surface;
-        } else if (edgeA.halfEdges[0].surface == edgeB.halfEdges[1].surface) {
-            newEdge->halfEdges[0] = edgeA.halfEdges[0];
-            newEdge->halfEdges[1] = edgeB.halfEdges[1];
-            newSurface = edgeA.halfEdges[0].surface;
-        } else if (edgeA.halfEdges[1].surface == edgeB.halfEdges[0].surface) {
-            newEdge->halfEdges[0] = edgeA.halfEdges[1];
-            newEdge->halfEdges[1] = edgeB.halfEdges[0];
-            newSurface = edgeA.halfEdges[1].surface;
-        } else if (edgeA.halfEdges[1].surface == edgeB.halfEdges[1].surface) {
-            newEdge->halfEdges[0] = edgeA.halfEdges[1];
-            newEdge->halfEdges[1] = edgeB.halfEdges[1];
-            newSurface = edgeA.halfEdges[1].surface;
-        } else {
-            throw NonRecoverableContradictionException("Cannot fold edges: no common surface found.");
+        auto newEdge = new StructuralEdge(halfEdgeA.structuralEdge); // TODO leak, use pool but idc about leaks rn its the least important thing here
+/*
+        structuralEdge.halfEdges = {
+            HalfEdge(structuralEdge, structuralEdge.halfEdges[0].surface, structuralEdge.halfEdges[0].nextEdge),
+            HalfEdge(structuralEdge, newEdge->halfEdges[1].surface, newEdge->halfEdges[1].nextEdge)
+        };*/
+/*
+        // Intercambiar nextEdge correctamente
+        for (int i = 0; i < 2; ++i) {
+            HalfEdge* originalNext = structuralEdge.halfEdges[i].nextEdge;
+            newEdge->halfEdges[i].nextEdge = originalNext;
+            structuralEdge.halfEdges[i].nextEdge = &newEdge->halfEdges[i];
         }
 
-        // TODO complete
+        if (newEdge->halfEdges[0].nextEdge == nullptr ||
+            newEdge->halfEdges[1].nextEdge == nullptr) {
+            throw NonRecoverableContradictionException("Mitosis failed: nextEdge is null.");
+            }*/
+
+        // TODO here goes the assert to check if both half edges share vertex
+
+        HalfEdge* originalNext = halfEdgeA.nextEdge;
+        halfEdgeA.nextEdge = &newEdge->halfEdges[0];
+        newEdge->halfEdges[0].nextEdge = originalNext;
+        newEdge->halfEdges[0].boundaryLoop = halfEdgeA.boundaryLoop;
+
+        originalNext = halfEdgeB.nextEdge;
+        halfEdgeB.nextEdge = &newEdge->halfEdges[1];
+        newEdge->halfEdges[1].nextEdge = originalNext;
+        newEdge->halfEdges[1].boundaryLoop = halfEdgeB.boundaryLoop;
+
+        outStructuralEdges.push_back(newEdge);
+
+        // TODO if surfaces of both half edges are adjacent create an extra edge and extra surface to avoid < 3 degree node.
+
+        auto newEdge2 = new StructuralEdge(halfEdgeB.structuralEdge);
+        outStructuralEdges.push_back(newEdge2);
+
+        outNewSurface = new StructuralSurface();
+
+        originalNext = halfEdgeA.nextEdge;
+        halfEdgeA.nextEdge = &newEdge2->halfEdges[0];
+        newEdge2->halfEdges[0].nextEdge = originalNext->nextEdge->nextEdge;
+        originalNext->nextEdge->nextEdge = &newEdge2->halfEdges[1];
+        newEdge2->halfEdges[1].nextEdge = originalNext;
+        newEdge2->halfEdges[0].boundaryLoop = halfEdgeA.boundaryLoop;
+        newEdge2->halfEdges[1].boundaryLoop = new BoundaryLoop{*outNewSurface, newEdge2->halfEdges[1]};
+
+
+    }
+/*  Merging this code with mitosis.
+    static void fold(HalfEdge& edgeA, HalfEdge& edgeB, StructuralEdge*& outStructuralEdge, StructuralSurface*& outStructuralSurface) {
+        StructuralSurface* newSurface = new StructuralSurface();
+        StructuralEdge* newEdge = new StructuralEdge(edgeA.structuralEdge); // TODO complete
+
+        if (&edgeA.surface != &edgeB.surface) {
+            throw NonRecoverableContradictionException("Cannot fold edges from different surfaces.");
+        }
+
+        HalfEdge* h = &edgeA;
+
+        while (h != &edgeB) {
+            h->surface = newSurface;
+            h = h->nextEdge;
+        }
+        edgeB.surface = newSurface;
 
         outStructuralEdge = newEdge;
         outStructuralSurface = newSurface;
+    }*/
+/*
+    template <class T>
+    static void inherit(Inherited<T>& fromEdge, StructuralEdge& toEdge) { // rethink, nascent idea
+        toEdge.surfaceTypes = fromEdge.surfaceTypes;
+        toEdge.edgeLength = fromEdge.edgeLength;
+        toEdge.lengthOverload = fromEdge.lengthOverload;
+        toEdge.proportionalRelation = fromEdge.proportionalRelation;
+        toEdge.semanticSeparation = fromEdge.semanticSeparation;
+        toEdge.nearestSemantic = fromEdge.nearestSemantic;
+
+        fromEdge is AngularSeparationInherited
+    }*/
+
+    static void reWeight() { // rethink, nascent idea
+        ConstraintSolver::checkAndSolve();
     }
 };
 

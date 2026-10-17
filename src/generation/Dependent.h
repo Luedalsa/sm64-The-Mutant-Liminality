@@ -16,6 +16,7 @@
 template <typename T>
 struct Scalar {
 private:
+    unsigned int lastWritten; // No use las diferencias para calcular prioridad, use relaciones (>, <)
     int priority; // maybe move to scalar
     std::vector<Constraint*> observers = std::vector<Constraint*>();
     friend class Variable;
@@ -111,7 +112,7 @@ public:
                 s->priority = priority;
             }
         }
-    }
+    }/*
     void setPriority(int newPriority) {
         for (auto scalar : scalars) {
             if (auto* s = static_cast<Scalar<float>*>(scalar)) {
@@ -120,6 +121,14 @@ public:
                 s->priority = newPriority;
             }
         }
+    }*/
+
+    float getModificationCost() {
+        float cost = 0.0f;
+        for (auto scalar : scalars) {
+            //cost += reinterpret_cast<Scalar<float>*>(scalar)->observers.size() * G_GeneralObserverCountCost;
+        }
+        return cost;
     }
 };
 

@@ -4,8 +4,10 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_DIAGNOSABLE_H
 #define SM64_THE_MUTANT_LIMINALITY_DIAGNOSABLE_H
-//#include "Constraintsolver.h"
+// #include "Constraintsolver.h"
 
+#include <functional>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -21,15 +23,15 @@ class Constraint;
 
 struct Diagnosable {
     static std::vector<Diagnostic> diagnostics;
-    static std::vector<Constraint*> constraints;
+    static std::priority_queue<Constraint*, std::vector<Constraint*>, std::function<bool(Constraint *, Constraint *)>> constraints;
 public:
     static void addDiagnostic(Diagnostic diagnostic) {
         diagnostics.emplace_back(diagnostic);
     }
     static void addViolatedConstraint(Constraint* constraint) {
-        constraints.emplace_back(constraint);
+        constraints.push(constraint);
     }
-    static const std::vector<Constraint*>& getConstraints() {
+    static const std::priority_queue<Constraint*, std::vector<Constraint*>, std::function<bool(Constraint *, Constraint *)>>& getConstraints() {
         return constraints;
     }
     static const std::vector<Diagnostic>& getDiagnostics() {

@@ -14,6 +14,7 @@
 struct SemanticEdge : BaseEdge {
     std::pair<TriangleFaceType, TriangleFaceType> idealFaceTypes = {TriangleFaceType::None, TriangleFaceType::None};
     int geometricRelations = -1;
+    float angularSeparation;
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_SEMANTICEDGE_H
