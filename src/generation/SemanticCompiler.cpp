@@ -4,4 +4,4 @@
 
 #include "SemanticCompiler.h"
 
-std::deque<SemanticRelations> SemanticCompiler::storage;
+//std::deque<SemanticRelations> SemanticCompiler::storage;

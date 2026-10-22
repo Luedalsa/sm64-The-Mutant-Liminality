@@ -6,7 +6,7 @@
 #include "AgentManager.h"
 #include "DebugExport.h"
 #include "LevelScriptManager.h"
-#include "StructuralSurface.h"
+#include "StructuralFace.h"
 #include "game/ingame_menu.h"
 
 inline int CASTLE_SEED = 0xDEADBEEF;

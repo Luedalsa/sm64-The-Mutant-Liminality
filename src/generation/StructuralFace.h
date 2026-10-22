@@ -2,12 +2,13 @@
 // Created by Luis Alvarez on 19/09/2026.
 //
 
-#ifndef SM64_THE_MUTANT_LIMINALITY_STRUCTURALSURFACE_H
-#define SM64_THE_MUTANT_LIMINALITY_STRUCTURALSURFACE_H
+#ifndef SM64_THE_MUTANT_LIMINALITY_STRUCTURALFACE_H
+#define SM64_THE_MUTANT_LIMINALITY_STRUCTURALFACE_H
 
 #include "Dependent.h"
 #include "Diagnosable.h"
 #include "NonRecoverableContradictionException.h"
+#include "StructuralEdge.h"
 #include "TriangleTypes.h"
 #include "UVModes.h"
 
@@ -26,9 +27,7 @@ extern "C" {
 #include <vector>
 
 struct StructuralEdge;
-
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...) -> overload<Ts...>;
+class ARN;
 
 struct Triangulation {
     struct Leaf { StructuralEdge* boundaryEdge; };
@@ -38,18 +37,18 @@ struct Triangulation {
     std::variant<Leaf, Fork> node;
 };
 
-class StructuralSurface : public Diagnosable {
+class StructuralFace : public Diagnosable {
 public:
     Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
-    StructuralSurface() {
-    }
-    ~StructuralSurface() {
-        throw NonRecoverableContradictionException("StructuralSurface destructor called. This should not happen, as StructuralSurfaces are managed by the system and should not be deleted manually.");
-    };
+    StructuralFace();
+    ~StructuralFace();
+    ;
 
     std::unique_ptr<Triangulation> triangulation;
     TriangleFaceType faceType = TriangleFaceType::None;
     SurfaceUVConfig uvConfig = SurfaceUVConfig{StretchUV{0, 32}};
+
+    std::vector<ARN> mitosisPlans;
 /*
     void diagnose() override {
         if (edges.size() < 3) {
@@ -59,10 +58,9 @@ public:
 */
     void collapseDisplayList();
 
-    void collapseTerrain() {
-    }
+    void collapseTerrain();
 };
 
 #endif
 
-#endif // SM64_THE_MUTANT_LIMINALITY_STRUCTURALSURFACE_H
+#endif // SM64_THE_MUTANT_LIMINALITY_STRUCTURALFACE_H

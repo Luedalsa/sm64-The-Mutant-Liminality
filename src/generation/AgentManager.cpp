@@ -6,18 +6,23 @@
 #include "SemanticEdge.h"
 #include "SemanticVertex.h"
 #include "StructuralEdge.h"
-#include "StructuralSurface.h"
+#include "StructuralFace.h"
 
 #include <cmath>
 #include <iostream>
 #include <queue>
 
 bool invalidGeometry = true;
-StructuralSurface* pivotSurface = nullptr;
+StructuralFace* pivotSurface = nullptr;
 StructuralEdge* pivotEdge = nullptr;
 RelativeTransform pivotTransform = RelativeTransform();
 
 // Las estructuras de datos están diseñadas para evitar vulnerabilidades en las estructuras de datos durante la generación de geometría y solución de restricciones. evitando infernales sesiones de debug.
+// Algunas claves de mi metodología:
+// Todo es referencia hasta que se demuestre la necesidad de un puntero nulo
+// Todo es privado hasta que se demuestre la necesidad de una interfaz
+// Todo es constante hasta que se demuestre la necesidad de una variable
+// Todo es singleton hasta que se demuestre la necesidad de instancias múltiples
 void AgentManager::start() {
     invalidGeometry = true;
     TriangleCollection::createTriangle(
@@ -50,7 +55,7 @@ void AgentManager::start() {
         edges[i].idealSeparation = 3.14159265358979323846f / 2.0f;
     }*/
 
-    static StructuralSurface surfaces[6] = {};
+    static StructuralFace surfaces[6] = {};
 /*
     // S0: tapa inferior (invertida respecto a los lados)
     edges[0].halfEdges.first.changeNextEdge(edges[3]);
@@ -117,12 +122,10 @@ void AgentManager::start() {
 
     auto* e = static_cast<StructuralEdge *>(malloc(sizeof(StructuralEdge)));
     std::vector<StructuralEdge*> e2;
-    StructuralSurface* newSurfaceA;
-    StructuralSurface* newSurfaceB;
-    StructuralSurface* newSurfaceC;
+    StructuralFace* newSurfaceA;
 
-    BiologicalAbomination::birth(e, newSurfaceA, newSurfaceB);
-    BiologicalAbomination::mitosis(e->getHalfEdge(0), e->getHalfEdge(1), e2, newSurfaceC);
+    BiologicalAbomination::abiogenesis(e);
+    BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
 
     pivotEdge = e;
     pivotSurface = newSurfaceA;

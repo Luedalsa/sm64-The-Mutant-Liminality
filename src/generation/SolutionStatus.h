@@ -7,6 +7,7 @@
 
 enum class SolutionStatus {
     SUCCESS,
+    PROGRESS,
     POSTPONED,
     CONTRADICTION
 };

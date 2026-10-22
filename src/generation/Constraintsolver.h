@@ -13,10 +13,6 @@
 #include "NonRecoverableContradictionException.h"
 
 #include <string>
-#include <unordered_map>
-#include <vector>
-#include "Relation.h"
-#include "SemanticEdge.h"
 
 struct NormalSeparationConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
@@ -77,7 +73,7 @@ struct DirectionVerticesRelationSizeConstraint : public Constraint {
     }
 };
 /*
-struct NetDisplacementConstraint : public Constraint {
+struct NetDisplacementConstraint : public Constraint { Maybe not needed, with addition of ARN data structure
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::GeometricallyUnrepresentable;
     }
@@ -89,8 +85,12 @@ struct NetDisplacementConstraint : public Constraint {
         // find lowest priority proportional relation
         // adapt size of lowest priority proportional relation to sum of all lengths or mitosis
         float sum = 0.0f;
+        Length* l = nullptr;
         for (const auto& length : lengthsVector) {
             sum += length->value;
+            if (length->getPriority() < l->getPriority()) {
+                l = length;
+            }
         }
         // Trigger geometric contradiction alarm / stall
         return SolutionStatus::SUCCESS;
@@ -173,6 +173,7 @@ struct SymmetryRelationConstraint : public Constraint {
     }
 };
 
+// Invariante de Conservación de la estructura simétrica: La geometría generada debe conservar los patrones de simetría presentes en la estructura topológica y semántica, permitiendo que las desviaciones respecto de dichos patrones ocurran únicamente dentro de los grados de libertad establecidos por las métricas del generador, no usar simetría implica negar los patrones estructurales de los castillos tanto en el juego original como en los mods.
 struct SymmetryForceConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::FullyRenderable;
@@ -191,6 +192,7 @@ struct SymmetryForceConstraint : public Constraint {
     }
 };
 
+
 struct FidelityForceConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::FullyRenderable;
@@ -208,7 +210,9 @@ struct FidelityForceConstraint : public Constraint {
         return SolutionStatus::SUCCESS;
     }
 };
+*/
 
+// Invariante de Recorrido infinito: Siempre hay algo que generar en alguna parte, este es el centro de todos los pivotes del proyecto.
 struct InfiniteTravelInvariant : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::FullyRenderable;
@@ -217,16 +221,23 @@ struct InfiniteTravelInvariant : public Constraint {
 
     InfiniteTravelInvariant(ItemCount& structuralEdgeCount) : structuralEdgeCount(structuralEdgeCount) {}
 
+    float calculateConstraint() override {
+        return 0.01f;
+    }
+
+    float getConstraintTension() override {
+        return 0.01f;
+    }
+
     SolutionStatus solve() override {
         if (structuralEdgeCount.get() == INT_MAX) {
             return SolutionStatus::SUCCESS; // unreachable
         } else {
-            // check less stable/priority edge
-            // mitosis
+            //Ribosome::printing.set(true);
         }
         return SolutionStatus::POSTPONED;
     }
-};*/
+};
 
 // TODO: Necesito que algo tenga la responsabilidad de trackear los procesos de mitosis para asegurarse de que la superficie que van copiando terminen con un half edge paralelo o con una suma angular neta de 0°
 struct NetAngleBundaryConstraint : public Constraint {
@@ -238,6 +249,115 @@ struct NetAngleBundaryConstraint : public Constraint {
     }
 };
 
+struct UncompletedCellularDivisionConstraint : public Constraint {
+    Scalar<bool>& printing;
+
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::GeometricallyUnrepresentable;
+    }
+
+    UncompletedCellularDivisionConstraint(Scalar<bool>& printing) : printing(printing) {}
+
+    float calculateConstraint() override {
+        return printing.get() ? 1.0f : 0.0f; // If printing is true, the constraint is violated (1.0), otherwise it's satisfied (0.0)
+    }
+
+    float getConstraintTension() override {
+        return printing.getPriority(); // The tension is based on the priority of the printing variable
+    }
+
+    SolutionStatus solve() override {
+        //BiologicalAbomination::grow();
+        if (printing.get()) {
+            return SolutionStatus::PROGRESS;
+        }
+        return SolutionStatus::SUCCESS;
+    }
+};
+
+struct RibosomeHasARNConstraint : public Constraint {
+    Scalar<bool>& printing;
+    Scalar<bool>& hasARN;
+
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::FullyRenderable;
+    }
+
+    RibosomeHasARNConstraint(Scalar<bool>& printing, Scalar<bool>& hasARN) : printing(printing), hasARN(hasARN) {}
+
+    float calculateConstraint() override {
+        return hasARN.get() ? !printing.get() : 0.0f;
+    }
+
+    float getConstraintTension() override {
+        return printing.getPriority();
+    }
+
+    SolutionStatus solve() override {
+        //printing.set(true);
+        return SolutionStatus::SUCCESS;
+    }
+};
+
+struct SemanticDiversityConstraint : public Constraint {
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::FullyRenderable;
+    }
+
+    SemanticDiversityConstraint() {}
+
+    float calculateConstraint() override {
+    }
+
+    float getConstraintTension() override {
+    }
+
+    SolutionStatus solve() override {
+        return SolutionStatus::POSTPONED;
+    }
+};
+
+struct SurfaceAdjacencyQuantityConstraint : public Constraint {
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::FullyRenderable;
+    }
+
+    SurfaceAdjacencyQuantityConstraint() {}
+
+    float calculateConstraint() override {
+    }
+
+    float getConstraintTension() override {
+    }
+
+    SolutionStatus solve() override {
+        return SolutionStatus::POSTPONED;
+    }
+};
+
+// Esta restricción es un poco más compleja que las otras
+// Mide que tanto una media arista tiene tensión semántica con otra
+// Para cada arista estructural, sus dos medias aristas estructurales deben tener la misma tensión semántica que sus dos medias aristas semánticas
+struct SemanticVoltageConstraint : public Constraint {
+    const ConstraintViolationSeverity getSeverity() const override {
+        return ConstraintViolationSeverity::FullyRenderable;
+    }
+
+    SemanticVoltageConstraint() {}
+
+    float calculateConstraint() override {
+    }
+
+    float getConstraintTension() override {
+    }
+
+    SolutionStatus solve() override {
+        return SolutionStatus::POSTPONED;
+    }
+};
+
+// TODO añadir:
+// Invariante de Localidad geométrica: Dado que es extremadamente dificil hacer geometría bonita, variada y teselable, cada sección visible tiene su propio espacio euclideano, si es bonita y variada, no es teselable; si es bonita y teselable, no es variada; si es variada y teselable, no es bonita. En este caso priorizo que la geometría sea bonita y variada.
 class ConstraintSolver {
 public:
     static int currentFrame;

@@ -17,18 +17,5 @@ struct RelativeTransform
     float height = 0.0f;
 };
 
-struct BaseEdge {
-    virtual ~BaseEdge() = default;
-    RelativeTransform transform{0.0f, 0, 0.0f};
-
-    int32_t id = -1;
-    ProportionalRelation *relation = (new ProportionalRelation{});
-    float positionHint = 0.0f;
-    float orientation = 0.0f;
-    float size = 0.0f;
-    bool orientationLocked = false;
-    bool merged = false;
-    int32_t mergedInto = -1;
-};
 
 #endif // SM64_THE_MUTANT_LIMINALITY_BASEEDGE_H

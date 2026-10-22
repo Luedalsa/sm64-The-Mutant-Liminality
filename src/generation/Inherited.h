@@ -4,11 +4,9 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_INHERITED_H
 #define SM64_THE_MUTANT_LIMINALITY_INHERITED_H
-#include "SemanticEdge.h"
+#include "BaseCastle.h"
 
 using SemanticId = size_t;
-
-inline SemanticEdge baseCastle[64] = {SemanticEdge{}}; // stub!
 
 struct SemanticSource {
     SemanticId& semanticEdgeId;
@@ -22,15 +20,15 @@ class Inherited {
     SemanticSource src;
     void changeToClosestSemantic() {
         SemanticId closestSemanticId = src.semanticEdgeId;
-        for (SemanticId i = 0; i < sizeof(baseCastle) / sizeof(SemanticEdge); i++) {
+        //for (SemanticId i = 0; i < BaseCastle::SEMANTIC_EDGE_COUNT; i++) {
             /*if (semanticEdge == &src.semanticEdgeId) {
                 continue;
             }*/
-            float proximity = getSemanticTension(i);
-            if (proximity < getSemanticTension(closestSemanticId)) {
+            /*float proximity = getSemanticTensionWith(i);
+            if (proximity < getSemanticTensionWith(closestSemanticId)) {
                 closestSemanticId = i;
-            }
-        }
+            }*/
+        //}
         src.semanticEdgeId = closestSemanticId;
     }
     virtual float getSemanticTensionWith(SemanticId id); // used to calculate priority on Variables and Scalars
@@ -38,10 +36,11 @@ public:
     Inherited(SemanticSource s, Scalar<T>& v) : value(v), src(s) {}
     const T& get() const { return value; }
     SemanticSource source() const { return src; }
+    /*
     void inheritFrom(const SemanticSource s, Scalar<T>& v) {
         value = v;
         //src = s;
-    }
+    }*/
     float getSemanticTension() {
         changeToClosestSemantic();
         return getSemanticTensionWith(src.semanticEdgeId);

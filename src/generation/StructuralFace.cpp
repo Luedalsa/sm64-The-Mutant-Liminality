@@ -2,7 +2,7 @@
 // Created by Luis Alvarez on 19/09/2026.
 //
 
-#include "StructuralSurface.h"
+#include "StructuralFace.h"
 #include "StructuralEdge.h"
 #include "textures.h"
 
@@ -15,7 +15,16 @@ namespace {
 
 } // namespace
 
-void StructuralSurface::collapseDisplayList() {/*
+StructuralFace::StructuralFace() {
+}
+StructuralFace::~StructuralFace() {
+    throw NonRecoverableContradictionException(
+        "StructuralFace destructor called. This should not happen, as StructuralFaces are managed by "
+        "the system and should not be deleted manually.");
+}
+void StructuralFace::collapseTerrain() {
+}
+void StructuralFace::collapseDisplayList() {/*
     if (edges.size() < 3) {
         throw NonRecoverableContradictionException("Cannot collapse display list with less than 3 edges.");
     }

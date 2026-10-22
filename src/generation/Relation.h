@@ -10,7 +10,7 @@
 #include "Dependent.h"
 
 struct ProportionalRelation {
-    Length stableSize = Length(0);
+    Length stableSize = Length(0); //rethink, maybe move to edges
     ItemCount usesCount = ItemCount(0);
     //std::vector<StructuralEdge*> components;
 /*
