@@ -34,6 +34,13 @@ public:
     TriangleFaceType stableSurfaceType;
     StructuralEdge& structuralEdge;
 
+    BoundaryLoop& getBoundaryLoop() const {
+        if (boundaryLoop == nullptr) {
+            throw NonRecoverableContradictionException("HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop. This should not happen, as HalfEdges are managed by the system and should always have a valid boundaryLoop.");
+        }
+        return *boundaryLoop;
+    }
+
     HalfEdge& walk() const {
         if (nextEdge == nullptr) {
             throw NonRecoverableContradictionException("HalfEdge walk() called on a HalfEdge with null nextEdge. This should not happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");

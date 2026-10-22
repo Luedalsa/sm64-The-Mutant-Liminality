@@ -3,6 +3,9 @@
 //
 
 #include "StructuralFace.h"
+
+#include "AgentManager.h"
+#include "DisplayListManager.h"
 #include "StructuralEdge.h"
 #include "textures.h"
 
@@ -24,20 +27,19 @@ StructuralFace::~StructuralFace() {
 }
 void StructuralFace::collapseTerrain() {
 }
-void StructuralFace::collapseDisplayList() {/*
-    if (edges.size() < 3) {
-        throw NonRecoverableContradictionException("Cannot collapse display list with less than 3 edges.");
-    }
+void StructuralFace::collapseDisplayList() {
 
     std::vector<DisplayVertex> vertices;
-    for (StructuralEdge * edge : edges) {
-        vertices.emplace_back((DisplayVertex){edge->getPosition(), 0, 0, 0, Vector3::zero()});
-    }
+    HalfEdge* edge = &AgentManager::pivotEdge->getHalfEdge(0);
+    do {
+        vertices.emplace_back((DisplayVertex){{edge->structuralEdge.position[0].value, edge->structuralEdge.position[1].value, edge->structuralEdge.position[2].value}, 0, 0, 0, Vector3::zero()});
+        edge = &edge->walk();
+    } while (edge != &AgentManager::pivotEdge->getHalfEdge(0));
 
     std::vector<std::array<int, 3>> triangles = {
         {0, 1, 2},
-        {0, 2, 3}
+        //{0, 2, 3}
     };
 
-    DisplayListManager::addDisplayListSegment(vertices, triangles, inside_09001000);*/
+    DisplayListManager::addDisplayListSegment(vertices, triangles, inside_09001000);
 }

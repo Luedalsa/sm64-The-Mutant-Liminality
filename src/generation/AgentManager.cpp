@@ -13,9 +13,9 @@
 #include <queue>
 
 bool invalidGeometry = true;
-StructuralFace* pivotSurface = nullptr;
-StructuralEdge* pivotEdge = nullptr;
-RelativeTransform pivotTransform = RelativeTransform();
+StructuralFace* AgentManager::pivotSurface = nullptr;
+StructuralEdge* AgentManager::pivotEdge = nullptr;
+RelativeTransform AgentManager::pivotTransform = RelativeTransform();
 
 // Las estructuras de datos están diseñadas para evitar vulnerabilidades en las estructuras de datos durante la generación de geometría y solución de restricciones. evitando infernales sesiones de debug.
 // Algunas claves de mi metodología:
@@ -125,7 +125,8 @@ void AgentManager::start() {
     StructuralFace* newSurfaceA;
 
     BiologicalAbomination::abiogenesis(e);
-    BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
+    //BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
+    newSurfaceA = &e->getHalfEdge(0).getBoundaryLoop().surface;
 
     pivotEdge = e;
     pivotSurface = newSurfaceA;
@@ -141,5 +142,19 @@ void AgentManager::start() {
         nextEdges.first->position.priority = ConstraintSolver::currentFrame;
     StructuralEdge* next = (pivotEdge->getSurfaces().first == pivotSurface ? pivotEdge->getNextEdges().first : pivotEdge->getNextEdges().second);
     next->setPosition(Vector3(1000, 0, 1000));*/
+
+    // Manual position debug test TODO: DELETE
+    e->position[0].value = 1000.0f;
+    e->position[1].value = 0.0f;
+    e->position[2].value = 1000.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->position[0].value = 1000.0f;
+    e->position[1].value = 0.0f;
+    e->position[2].value = 0.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->position[0].value = 0.0f;
+    e->position[1].value = 0.0f;
+    e->position[2].value = 0.0f;
+
     newSurfaceA->collapseDisplayList();
 }
