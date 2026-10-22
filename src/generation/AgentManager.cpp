@@ -157,4 +157,5 @@ void AgentManager::start() {
     e->position[2].value = 0.0f;
 
     newSurfaceA->collapseDisplayList();
+    newSurfaceA->collapseTerrain();
 }

@@ -7,7 +7,6 @@
 #include "AgentManager.h"
 #include "DisplayListManager.h"
 #include "StructuralEdge.h"
-#include "textures.h"
 
 #include <array>
 #include <cmath>
@@ -18,6 +17,12 @@ namespace {
 
 } // namespace
 
+extern "C" {
+    #include "surface_terrains.h"
+    #include "textures.h"
+    #include "engine/surface_load.h"
+}
+
 StructuralFace::StructuralFace() {
 }
 StructuralFace::~StructuralFace() {
@@ -26,6 +31,16 @@ StructuralFace::~StructuralFace() {
         "the system and should not be deleted manually.");
 }
 void StructuralFace::collapseTerrain() {
+    sSurfacePool[0].type = SURFACE_DEFAULT;
+    sSurfacePool->vertex1[0] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[0].value;
+    sSurfacePool->vertex1[1] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[1].value;
+    sSurfacePool->vertex1[2] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[2].value;
+    sSurfacePool->vertex2[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[0].value;
+    sSurfacePool->vertex2[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[1].value;
+    sSurfacePool->vertex2[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[2].value;
+    sSurfacePool->vertex3[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[0].value;
+    sSurfacePool->vertex3[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[1].value;
+    sSurfacePool->vertex3[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[2].value;
 }
 void StructuralFace::collapseDisplayList() {
 
