@@ -121,7 +121,7 @@ void AgentManager::start() {
     StructuralFace* newSurfaceA;
 
     BiologicalAbomination::abiogenesis(e);
-    //BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
+    BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
     newSurfaceA = &e->getHalfEdge(0).getBoundaryLoop().surface;
 
     pivotEdge = e;
@@ -151,6 +151,10 @@ void AgentManager::start() {
     e->position[0].value = -1000.0f;
     e->position[1].value = 0.0f;
     e->position[2].value = -1000.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->position[0].value = -1000.0f;
+    e->position[1].value = 0.0f;
+    e->position[2].value = 1000.0f;
 
     newSurfaceA->collapseDisplayList();
     newSurfaceA->collapseTerrain();

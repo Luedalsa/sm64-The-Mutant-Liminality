@@ -127,7 +127,7 @@ void BiologicalAbomination::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdge
 
     // TODO if surfaces of both half edges are adjacent create an extra edge and extra surface to avoid
     // < 3 degree node.
-
+/*
     auto newEdge2 = new StructuralEdge(halfEdgeB.structuralEdge);
     outStructuralEdges.push_back(newEdge2);
 
@@ -139,7 +139,7 @@ void BiologicalAbomination::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdge
     originalNext->nextEdge->nextEdge = &newEdge2->halfEdges[1];
     newEdge2->halfEdges[1].nextEdge = originalNext;
     newEdge2->halfEdges[0].boundaryLoop = halfEdgeA.boundaryLoop;
-    newEdge2->halfEdges[1].boundaryLoop = new BoundaryLoop{ *outNewSurface, newEdge2->halfEdges[1] };
+    newEdge2->halfEdges[1].boundaryLoop = new BoundaryLoop{ *outNewSurface, newEdge2->halfEdges[1] };*/
 
     std::cout << "Fin de la mitosis, se han creado 2 aristas estructurales y 1 superficie estructural."
               << std::endl;
