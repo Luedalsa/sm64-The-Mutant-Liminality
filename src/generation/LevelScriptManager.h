@@ -140,15 +140,22 @@ class LevelScriptManager {
         return newGeoLayout;
     }
 
+    // Las colisiones ahora se manejan manipulando el pool directamente
     static Collision* buildTerrain() {
         //return (short*)&inside_castle_seg7_area_1_collision[0]; // Default collision for reference
 
-        auto collisionVertices = CollisionManager::getCollisionVertices();
-        auto collisionTriangles = CollisionManager::getCollisionTriangles();
+        std::vector<Vector3> collisionVertices{{1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1}}; // Security floor
+        std::unordered_map<int, std::vector<int>> collisionTriangles{{SURFACE_DEFAULT, {0, 1, 2, 2, 1, 3}}};
 
-        // Security floor
-        /*std::vector<Vector3> collisionVertices{{16000, 0, 16000}, {16000, 0, -16000}, {-16000, 0, 16000}, {-16000, 0, -16000}};
-        std::unordered_map<int, std::vector<int>> collisionTriangles{{SURFACE_DEFAULT, {0, 1, 2, 2, 1, 3}}};*/
+        for (int i = 0; i < 64; i++) {
+            collisionVertices.emplace_back(1, 0, 1);
+            collisionVertices.emplace_back(1, 0, -1);
+            collisionVertices.emplace_back(-1, 0, -1);
+            auto& t = collisionTriangles[SURFACE_DEFAULT];
+            t.push_back(0);
+            t.push_back(static_cast<int>(collisionVertices.size() - 1));
+            t.push_back(1);
+        }
 
         auto triangles = 0;
         for (auto& t : collisionTriangles) {

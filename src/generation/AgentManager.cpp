@@ -25,11 +25,7 @@ RelativeTransform AgentManager::pivotTransform = RelativeTransform();
 // Todo es singleton hasta que se demuestre la necesidad de instancias múltiples
 void AgentManager::start() {
     invalidGeometry = true;
-    TriangleCollection::createTriangle(
-        VertexCollection::createVertex({ 1, 0, 1 }),
-        VertexCollection::createVertex({ 1, 0, -1 }),
-        VertexCollection::createVertex({ -1, 0, -1 }),
-        TriangleFaceType::CheckerboardFloor);
+    //Bye bye, abstract geometry
 
     ProportionalRelation *relation1 = (new ProportionalRelation{1000.0f});
 
@@ -150,11 +146,11 @@ void AgentManager::start() {
     e = &e->getHalfEdge(0).walk().structuralEdge;
     e->position[0].value = 1000.0f;
     e->position[1].value = 0.0f;
-    e->position[2].value = 0.0f;
+    e->position[2].value = -1000.0f;
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->position[0].value = 0.0f;
+    e->position[0].value = -1000.0f;
     e->position[1].value = 0.0f;
-    e->position[2].value = 0.0f;
+    e->position[2].value = -1000.0f;
 
     newSurfaceA->collapseDisplayList();
     newSurfaceA->collapseTerrain();

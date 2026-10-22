@@ -15,18 +15,6 @@ std::queue<int> LevelScriptManager::trianglesQueue;
  * lists, and other necessary information for the game engine to render and interact with the level.
  */
 LevelScript * LevelScriptManager::buildLevel() {
-
-    addTriangleToBuildQueue(0);
-
-    while (trianglesQueue.size() > 0) {
-        auto t = trianglesQueue.front();
-        trianglesQueue.pop();
-        auto triangle = TriangleCollection::getTriangle(t);
-        if (triangle->isBuilt() == false) {
-            triangle->build();
-        }
-    }
-
     auto newLevel = buildLevelScript();
     return newLevel;
 }
