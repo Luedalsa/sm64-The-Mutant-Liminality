@@ -6,9 +6,10 @@
 #define SM64_THE_MUTANT_LIMINALITY_DISPLAYLISTMANAGER_H
 
 #include "LevelPoolManager.h"
-#include "TriangleCollection.h"
+#include "Primitives.h"
 #include "textures.h"
 
+#include <array>
 #include <cstring>
 
 #include <vector>

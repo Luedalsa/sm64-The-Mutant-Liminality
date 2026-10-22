@@ -2,7 +2,6 @@
 #ifndef SM64_THE_MUTANT_LIMINALITY_SEMANTICCOMPILER_H
 #define SM64_THE_MUTANT_LIMINALITY_SEMANTICCOMPILER_H
 #include "TriangleTypes.h"
-#include "TriangleCollection.h"
 #include "TriangleEdgeSplitSolver.h"
 #include "SemanticEdge.h"
 #include "VertexCollection.h"

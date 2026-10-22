@@ -4,9 +4,6 @@
 
 #include "LevelScriptManager.h"
 
-#include "AbstractVertex.h"
-#include "TriangleCollection.h"
-
 std::queue<int> LevelScriptManager::trianglesQueue;
 
 /**

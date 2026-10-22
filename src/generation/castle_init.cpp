@@ -66,7 +66,7 @@ s32 castle_init(s16 arg, s32 unused) {
 
     AgentManager::start();
 
-    exportTrianglesToObj("debug_pass1.obj", "ok");
+    // exportTrianglesToObj("debug_pass1.obj", "ok");
 
     mutantCastleLevelScript = LevelScriptManager::buildLevel();
     level_castle_inside_entry[3] = (LevelScript)mutantCastleLevelScript;

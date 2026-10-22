@@ -4,6 +4,8 @@
 
 #include "StructuralEdge.h"
 
+#include <cassert>
+
 bool BiologicalAbomination::ranAbiogenesis = false;
 std::queue<ARN> Ribosome::mitosisPlans;
 std::vector<StructuralEdge*> BiologicalAbomination::cellBorders;

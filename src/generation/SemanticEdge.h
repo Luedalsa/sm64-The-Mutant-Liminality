@@ -4,7 +4,6 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_SEMANTICEDGE_H
 #define SM64_THE_MUTANT_LIMINALITY_SEMANTICEDGE_H
-#include "AbstractTriangle.h"
 #include "BaseCastle.h"
 #include "BaseEdge.h"
 #include "EdgeRelations.h"
@@ -13,6 +12,7 @@
 #include <vector>
 
 // Conceptualmente equivalente al mapa semántico del diario per implícito, TODO: para medir tensión semántica entre dos superficies se debe hacer un pathfinding entre las nedias aristas semánticas y registrar la más alta diferencia semántica que se encuentre en el camino.
+// La diferencia semántica que tienen dos medias aristas semánticas arbitrarias se basará en una función de optimización que involucra la suma de todas sus propiedades, TODO: hipótesis: la diferencia semántica entre dos medias aristas semánticas arbitrarias tiene que se igual a la diferencia semántica entre los gemelos originales de cada media arista semántica
 enum class SemanticDifference {
     Contextual, // Equivalente a Partición contextual según el diario
     High,

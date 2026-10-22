@@ -4,8 +4,8 @@
 
 #ifndef SM64_THE_MUTANT_LIMINALITY_BASECASTLE_H
 #define SM64_THE_MUTANT_LIMINALITY_BASECASTLE_H
-#include "AbstractTriangle.h"
 #include "SemanticEdge.h"
+#include <cstddef>
 
 struct SemanticEdge;
 

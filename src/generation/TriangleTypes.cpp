@@ -2,8 +2,6 @@
 // Created by Luis Alvarez on 30/07/2026.
 //
 #include "TriangleTypes.h"
-#include "TriangleCollection.h"
-#include "AbstractTriangle.h"
 #include "VertexCollection.h"
 #include "AbstractVertex.h"
 #include "CollisionManager.h"
@@ -18,7 +16,7 @@ std::array<BuildGeometryFn, static_cast<size_t>(TriangleFaceType::Count)> Triang
 
 namespace {
 
-void buildFlatGeometry(std::vector<int>& neighbours, int surfaceType, const u8* texture) {
+void buildFlatGeometry(std::vector<int>& neighbours, int surfaceType, const u8* texture) {/*
     std::map<int, int> localVertexSegment;
     std::vector<std::array<int, 3>> localTriangleSegment;
     std::vector<DisplayVertex> displayVertices;
@@ -53,7 +51,7 @@ void buildFlatGeometry(std::vector<int>& neighbours, int surfaceType, const u8* 
         });
     }
 
-    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, texture);
+    DisplayListManager::addDisplayListSegment(displayVertices, localTriangleSegment, texture);*/
 }
 
 } // namespace
