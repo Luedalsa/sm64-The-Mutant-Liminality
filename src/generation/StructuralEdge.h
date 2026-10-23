@@ -21,9 +21,7 @@ class SemanticHalfEdge;
 
 class HalfEdge {
 private:
-    HalfEdge(StructuralEdge& e, BoundaryLoop& s, HalfEdge& n)
-      : boundaryLoop(&s), nextEdge(&n), /*semanticHalfEdge(), */structuralEdge(e) {
-  }
+    HalfEdge(StructuralEdge& e, BoundaryLoop& s, HalfEdge& n);
 
   BoundaryLoop * boundaryLoop;
     HalfEdge* nextEdge; // This value must NEVER be null
@@ -34,25 +32,11 @@ public:
     TriangleFaceType stableSurfaceType;
     StructuralEdge& structuralEdge;
 
-    BoundaryLoop& getBoundaryLoop() const {
-        if (boundaryLoop == nullptr) {
-            throw NonRecoverableContradictionException("HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop. This should not happen, as HalfEdges are managed by the system and should always have a valid boundaryLoop.");
-        }
-        return *boundaryLoop;
-    }
+    BoundaryLoop& getBoundaryLoop() const;
 
-    HalfEdge& walk() const {
-        if (nextEdge == nullptr) {
-            throw NonRecoverableContradictionException("HalfEdge walk() called on a HalfEdge with null nextEdge. This should not happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");
-        }
-        if (nextEdge == this) {
-            throw NonRecoverableContradictionException("HalfEdge walk() called on a HalfEdge that points to itself as nextEdge. This should not happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");
-        }
-        if (nextEdge->boundaryLoop != this->boundaryLoop) {
-            throw NonRecoverableContradictionException("HalfEdge walk() called on a HalfEdge whose nextEdge belongs to a different BoundaryLoop. This should not happen, as HalfEdges are managed by the system and should always have a valid nextEdge within the same BoundaryLoop.");
-        }
-        return *nextEdge;
-    }
+    HalfEdge & walk() const;
+
+    HalfEdge & getEvilTwin() const;
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
@@ -66,14 +50,14 @@ private:
                             *structuralEdge.halfEdges[0].nextEdge),
                    HalfEdge(*this, *structuralEdge.halfEdges[1].boundaryLoop,
                             *structuralEdge.halfEdges[1].nextEdge) },
-        stableSize(structuralEdge.stableSize),
+        //stableSize(structuralEdge.stableSize),
         position{ structuralEdge.position[0], structuralEdge.position[1], structuralEdge.position[2] },
-        stableSeparation(structuralEdge.stableSeparation),
+        //stableSeparation(structuralEdge.stableSeparation),
         semanticTension(structuralEdge.semanticTension) {
 
     }
     HalfEdge halfEdges[2]; // par no ordenado, quizas crear una estructura de datos para encapsular y operar sobre ellos
-    Length stableSize = Length(0);
+    Length stableSize = Length(1000);
     // Probablemente añada operadores sustractivos
     ~StructuralEdge() {
         throw NonRecoverableContradictionException("StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
@@ -90,7 +74,7 @@ public:
         return halfEdges[index];
     }
     VAxis position[3] = {VAxis(0), VAxis(0), VAxis(0)};
-    float stableSeparation;
+    float stableSeparation = M_PI / 2.0f; // TODO: esto debería ser un Theta, pero por ahora lo dejo como float para simplificar la implementación inicial
     Length semanticTension = Length(0);
 };
 
