@@ -58,7 +58,7 @@ void StructuralFace::collapseDisplayList() {
     std::vector<DisplayVertex> vertices;
     HalfEdge* edge = &AgentManager::pivotEdge->getHalfEdge(0);
     do {
-        vertices.emplace_back((DisplayVertex){{edge->structuralEdge.displayVertex.position.x, edge->structuralEdge.displayVertex.position.y, edge->structuralEdge.displayVertex.position.z}, 0, 0, 0, Vector3::zero()});
+        vertices.emplace_back(edge->structuralEdge.displayVertex);
         edge = &edge->walk();
     } while (edge != &AgentManager::pivotEdge->getHalfEdge(0));
 
