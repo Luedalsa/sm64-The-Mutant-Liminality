@@ -32,33 +32,33 @@ StructuralFace::~StructuralFace() {
 }
 void StructuralFace::collapseTerrain() {
     sSurfacePool[0].type = SURFACE_DEFAULT;
-    sSurfacePool[0].vertex1[0] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[0].value;
-    sSurfacePool[0].vertex1[1] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[1].value;
-    sSurfacePool[0].vertex1[2] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[2].value;
-    sSurfacePool[0].vertex2[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[0].value;
-    sSurfacePool[0].vertex2[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[1].value;
-    sSurfacePool[0].vertex2[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.position[2].value;
-    sSurfacePool[0].vertex3[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[0].value;
-    sSurfacePool[0].vertex3[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[1].value;
-    sSurfacePool[0].vertex3[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[2].value;
+    sSurfacePool[0].vertex1[0] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.x;
+    sSurfacePool[0].vertex1[1] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.y;
+    sSurfacePool[0].vertex1[2] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.z;
+    sSurfacePool[0].vertex2[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.displayVertex.position.x;
+    sSurfacePool[0].vertex2[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.displayVertex.position.y;
+    sSurfacePool[0].vertex2[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().structuralEdge.displayVertex.position.z;
+    sSurfacePool[0].vertex3[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.x;
+    sSurfacePool[0].vertex3[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.y;
+    sSurfacePool[0].vertex3[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.z;
 
     sSurfacePool[1].type = SURFACE_DEFAULT;
-    sSurfacePool[1].vertex1[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[0].value;
-    sSurfacePool[1].vertex1[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[1].value;
-    sSurfacePool[1].vertex1[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.position[2].value;
-    sSurfacePool[1].vertex2[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.position[0].value;
-    sSurfacePool[1].vertex2[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.position[1].value;
-    sSurfacePool[1].vertex2[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.position[2].value;
-    sSurfacePool[1].vertex3[0] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[0].value;
-    sSurfacePool[1].vertex3[1] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[1].value;
-    sSurfacePool[1].vertex3[2] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.position[2].value;
+    sSurfacePool[1].vertex1[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.x;
+    sSurfacePool[1].vertex1[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.y;
+    sSurfacePool[1].vertex1[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().structuralEdge.displayVertex.position.z;
+    sSurfacePool[1].vertex2[0] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.displayVertex.position.x;
+    sSurfacePool[1].vertex2[1] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.displayVertex.position.y;
+    sSurfacePool[1].vertex2[2] = AgentManager::pivotEdge->getHalfEdge(0).walk().walk().walk().structuralEdge.displayVertex.position.z;
+    sSurfacePool[1].vertex3[0] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.x;
+    sSurfacePool[1].vertex3[1] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.y;
+    sSurfacePool[1].vertex3[2] = AgentManager::pivotEdge->getHalfEdge(0).structuralEdge.displayVertex.position.z;
 }
 void StructuralFace::collapseDisplayList() {
 
     std::vector<DisplayVertex> vertices;
     HalfEdge* edge = &AgentManager::pivotEdge->getHalfEdge(0);
     do {
-        vertices.emplace_back((DisplayVertex){{edge->structuralEdge.position[0].value, edge->structuralEdge.position[1].value, edge->structuralEdge.position[2].value}, 0, 0, 0, Vector3::zero()});
+        vertices.emplace_back((DisplayVertex){{edge->structuralEdge.displayVertex.position.x, edge->structuralEdge.displayVertex.position.y, edge->structuralEdge.displayVertex.position.z}, 0, 0, 0, Vector3::zero()});
         edge = &edge->walk();
     } while (edge != &AgentManager::pivotEdge->getHalfEdge(0));
 

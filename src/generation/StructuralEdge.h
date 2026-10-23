@@ -8,6 +8,7 @@
 #include "SemanticEdge.h"
 #include "StructuralFace.h"
 #include "Constraintsolver.h"
+#include "Primitives.h"
 
 #include <stack>
 #include <utility>
@@ -51,7 +52,7 @@ private:
                    HalfEdge(*this, *structuralEdge.halfEdges[1].boundaryLoop,
                             *structuralEdge.halfEdges[1].nextEdge) },
         //stableSize(structuralEdge.stableSize),
-        position{ structuralEdge.position[0], structuralEdge.position[1], structuralEdge.position[2] },
+        displayVertex(structuralEdge.displayVertex),
         //stableSeparation(structuralEdge.stableSeparation),
         semanticTension(structuralEdge.semanticTension) {
 
@@ -73,7 +74,7 @@ public:
         }
         return halfEdges[index];
     }
-    VAxis position[3] = {VAxis(0), VAxis(0), VAxis(0)};
+    DisplayVertex displayVertex = DisplayVertex{{0, 0, 0}, 0, 0, 0, Vector3::zero()};
     float stableSeparation = M_PI / 2.0f; // TODO: esto debería ser un Theta, pero por ahora lo dejo como float para simplificar la implementación inicial
     Length semanticTension = Length(0);
 };

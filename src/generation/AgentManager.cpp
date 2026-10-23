@@ -140,21 +140,21 @@ void AgentManager::start() {
     next->setPosition(Vector3(1000, 0, 1000));*/
 
     // Manual position debug test TODO: DELETE
-    e->position[0].value = 1000.0f;
-    e->position[1].value = 0.0f;
-    e->position[2].value = 1000.0f;
+    e->displayVertex.position.x = 1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = 1000.0f;
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->position[0].value = 1000.0f;
-    e->position[1].value = 0.0f;
-    e->position[2].value = -1000.0f;
+    e->displayVertex.position.x = 1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = -1000.0f;
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->position[0].value = -1000.0f;
-    e->position[1].value = 0.0f;
-    e->position[2].value = -1000.0f;
+    e->displayVertex.position.x = -1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = -1000.0f;
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->position[0].value = -1000.0f;
-    e->position[1].value = 0.0f;
-    e->position[2].value = 1000.0f;
+    e->displayVertex.position.x = -1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = 1000.0f;
 
     newSurfaceA->collapseDisplayList();
     newSurfaceA->collapseTerrain();
