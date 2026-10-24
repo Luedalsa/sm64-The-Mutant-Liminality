@@ -7,8 +7,8 @@
 #include "ConstraintState.h"
 #include "Constraint.h"
 //#include "Diagnosable.h"
-#include "NonRecoverableContradictionException.h"
 
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -48,9 +48,7 @@ public:
                             break;
                     }
                 }
-                if (!is) {
-                    throw NonRecoverableContradictionException("Dependent has a contradiction in its constraints.");
-                }
+                assert(is && "Dependent has a contradiction in its constraints.");
             }
         }
         return value;

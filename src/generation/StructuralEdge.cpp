@@ -11,31 +11,23 @@ HalfEdge::HalfEdge(StructuralEdge &e, BoundaryLoop &s, HalfEdge &n)
     : boundaryLoop(&s), nextEdge(&n), /*semanticHalfEdge(), */ structuralEdge(e) {
 }
 BoundaryLoop &HalfEdge::getBoundaryLoop() const {
-    if (boundaryLoop == nullptr) {
-        throw NonRecoverableContradictionException(
-            "HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop. This should not "
-            "happen, as HalfEdges are managed by the system and should always have a valid "
-            "boundaryLoop.");
-    }
+    assert(boundaryLoop != nullptr
+        && "HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop. This should not "
+           "happen, as HalfEdges are managed by the system and should always have a valid "
+           "boundaryLoop.");
     return *boundaryLoop;
 }
 HalfEdge &HalfEdge::walk() const {
-    if (nextEdge == nullptr) {
-        throw NonRecoverableContradictionException(
-            "HalfEdge walk() called on a HalfEdge with null nextEdge. This should not happen, as "
-            "HalfEdges are managed by the system and should always have a valid nextEdge.");
-    }
-    if (nextEdge == this) {
-        throw NonRecoverableContradictionException(
-            "HalfEdge walk() called on a HalfEdge that points to itself as nextEdge. This should not "
-            "happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");
-    }
-    if (nextEdge->boundaryLoop != this->boundaryLoop) {
-        throw NonRecoverableContradictionException(
-            "HalfEdge walk() called on a HalfEdge whose nextEdge belongs to a different BoundaryLoop. "
-            "This should not happen, as HalfEdges are managed by the system and should always have a "
-            "valid nextEdge within the same BoundaryLoop.");
-    }
+    assert(nextEdge != nullptr
+        && "HalfEdge walk() called on a HalfEdge with null nextEdge. This should not happen, as "
+           "HalfEdges are managed by the system and should always have a valid nextEdge.");
+    assert(nextEdge != this
+        && "HalfEdge walk() called on a HalfEdge that points to itself as nextEdge. This should not "
+           "happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");
+    assert(nextEdge->boundaryLoop == this->boundaryLoop
+        && "HalfEdge walk() called on a HalfEdge whose nextEdge belongs to a different BoundaryLoop. "
+           "This should not happen, as HalfEdges are managed by the system and should always have a "
+           "valid nextEdge within the same BoundaryLoop.");
     return *nextEdge;
 }
 HalfEdge &HalfEdge::getEvilTwin() const {

@@ -7,7 +7,6 @@
 
 #include "Dependent.h"
 #include "Diagnosable.h"
-#include "NonRecoverableContradictionException.h"
 #include "StructuralEdge.h"
 #include "TriangleTypes.h"
 #include "UVModes.h"

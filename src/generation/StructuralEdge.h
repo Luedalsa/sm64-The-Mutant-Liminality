@@ -10,6 +10,7 @@
 #include "Constraintsolver.h"
 #include "Primitives.h"
 
+#include <cassert>
 #include <stack>
 #include <utility>
 #include <vector>
@@ -61,7 +62,7 @@ private:
     Length stableSize = Length(1000);
     // Probablemente añada operadores sustractivos
     ~StructuralEdge() {
-        throw NonRecoverableContradictionException("StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
+        assert(false && "StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
     };
 
     friend struct BiologicalAbomination;
@@ -100,9 +101,7 @@ class Ribosome;
 class ARN {
     std::queue<SemanticHalfEdge*> edgesChain;
     ARN(std::queue<SemanticHalfEdge*> arn) : edgesChain(std::move(arn)) {
-        if (edgesChain.empty()) {
-            throw NonRecoverableContradictionException("MitosisPlan cannot be created as empty.");
-        }
+        assert(!edgesChain.empty() && "MitosisPlan cannot be created as empty.");
     }
     friend Ribosome;
 };

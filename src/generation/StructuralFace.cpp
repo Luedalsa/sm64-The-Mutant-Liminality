@@ -9,6 +9,7 @@
 #include "StructuralEdge.h"
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <vector>
 
@@ -26,9 +27,8 @@ extern "C" {
 StructuralFace::StructuralFace() {
 }
 StructuralFace::~StructuralFace() {
-    throw NonRecoverableContradictionException(
-        "StructuralFace destructor called. This should not happen, as StructuralFaces are managed by "
-        "the system and should not be deleted manually.");
+    assert(false && "StructuralFace destructor called. This should not happen, as StructuralFaces are managed by "
+                    "the system and should not be deleted manually.");
 }
 void StructuralFace::collapseTerrain() {
     sSurfacePool[0].type = SURFACE_DEFAULT;

@@ -10,8 +10,8 @@
 #include "ConstraintState.h"
 #include "Dependent.h"
 #include "Diagnosable.h"
-#include "NonRecoverableContradictionException.h"
 
+#include <cassert>
 #include <string>
 
 struct NormalSeparationConstraint : public Constraint {
@@ -366,17 +366,13 @@ public:
         currentFrame++;
         bool continueSolving = true;
         while (continueSolving) {
-            if (Diagnosable::getConstraints().empty()) {
-                throw NonRecoverableContradictionException("ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
-            }
+            assert(!Diagnosable::getConstraints().empty() && "ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
             auto constraint = Diagnosable::getConstraints().top();
             if (constraint->state == ConstraintState::VIOLATED) {
                 SolutionStatus status = constraint->solve();
                 if (status == SolutionStatus::SUCCESS) {
                     constraint->state = ConstraintState::SATISFIED;
-                    if (!constraint->isIdentity()) {
-                        throw NonRecoverableContradictionException("ConstraintSolver: Constraint is not in identity state after success solving.");
-                    }
+                    assert(constraint->isIdentity() && "ConstraintSolver: Constraint is not in identity state after success solving.");
                     //Diagnosable::getConstraints().erase(Diagnosable::constraints.begin());
                     /*if (constraint->severity == ConstraintViolationSeverity::GeometricallyUnrepresentable) {
                     }*/
@@ -387,11 +383,11 @@ public:
                     //Diagnosable::getConstraints().erase(Diagnosable::constraints.begin());
                     //Diagnosable::getConstraints().push_back(constraint);
                 } else if (status == SolutionStatus::CONTRADICTION) {
-                    throw NonRecoverableContradictionException("Reached contradiction, multiple constraints are in conflict and cannot be satisfied simultaneously. The system is in an unrecoverable state.");
+                    assert(false && "Reached contradiction, multiple constraints are in conflict and cannot be satisfied simultaneously. The system is in an unrecoverable state.");
                 }
                 constraint->prevStatus = status;
             } else {
-                throw NonRecoverableContradictionException("ConstraintSolver: Constraint is not in CONTRADICTION state when checking constraints. Diagnoser didnt do a good job.");
+                assert(false && "ConstraintSolver: Constraint is not in CONTRADICTION state when checking constraints. Diagnoser didnt do a good job.");
             }
             continueSolving = Diagnosable::getConstraints().top()->getSeverity() == ConstraintViolationSeverity::TotallyUnrepresentable;
         }
