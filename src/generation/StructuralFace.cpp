@@ -4,7 +4,6 @@
 
 #include "StructuralFace.h"
 
-#include "AgentManager.h"
 #include "DisplayListManager.h"
 #include "StructuralEdge.h"
 

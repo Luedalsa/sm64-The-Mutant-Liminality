@@ -1,11 +1,12 @@
+#include "ConstraintOperator.h"
 #include "behavior_data.h"
 
 #include <utility>
 #include "level_commands.h"
 #include "engine/surface_collision.h"
-#include "AgentManager.h"
 #include "DebugExport.h"
 #include "LevelScriptManager.h"
+#include "SpaceAnchor.h"
 #include "StructuralFace.h"
 #include "game/ingame_menu.h"
 
@@ -40,6 +41,12 @@ extern "C" LevelScript level_castle_inside_entry[] = {
 };
 extern "C" u8 dialog_text_DIALOG_133[5000] = { DIALOG_CHAR_TERMINATOR };
 
+// Las estructuras de datos están diseñadas para evitar vulnerabilidades en las estructuras de datos durante la generación de geometría y solución de restricciones. evitando infernales sesiones de debug.
+// Algunas claves de mi metodología:
+// Todo es referencia hasta que se demuestre la necesidad de un puntero nulo
+// Todo es privado hasta que se demuestre la necesidad de una interfaz
+// Todo es constante hasta que se demuestre la necesidad de una variable
+// Todo es singleton hasta que se demuestre la necesidad de instancias múltiples
 s32 castle_init(s16 arg, s32 unused) {
     CASTLE_SEED = 0;
 
@@ -61,10 +68,50 @@ s32 castle_init(s16 arg, s32 unused) {
     }
     dialog_text_DIALOG_133[s.length()] = DIALOG_CHAR_TERMINATOR;
 
-    AgentManager::setup();
     LevelScriptManager::setup();
 
-    AgentManager::start();
+
+    auto* e = static_cast<StructuralEdge *>(malloc(sizeof(StructuralEdge)));
+    std::vector<StructuralEdge*> e2;
+    StructuralFace* newSurfaceA;
+
+    ConstraintOperator::abiogenesis(e);
+    ConstraintOperator::cellWallGrow(e->getHalfEdge(1), e->getHalfEdge(0).walk().walk(), e2, newSurfaceA);
+    newSurfaceA = &e->getHalfEdge(0).getBoundaryLoop().getSurface();
+
+    SpaceAnchor::pivotHalfEdge = &e->getHalfEdge(0);
+    SpaceAnchor::pivotTransform = RelativeTransform{1000.0f, 3.141592f/2.0f, 0.0f};
+/*
+    pivotSurface->normal.set(Vector3(0, 1, 0));
+    pivotSurface->normal.setPriority(ConstraintSolver::currentFrame);
+    pivotEdge->position.set(Vector3(1000, 0, 0));
+    pivotEdge->position.setPriority(ConstraintSolver::currentFrame);
+        nextEdges.first->position = Vector3(pos.x + transform.distance * cos(transform.yaw),
+                                            pos.y + transform.height,
+                                            pos.z + transform.distance * sin(transform.yaw));
+        nextEdges.first->position.priority = ConstraintSolver::currentFrame;
+    StructuralEdge* next = (pivotEdge->getSurfaces().first == pivotSurface ? pivotEdge->getNextEdges().first : pivotEdge->getNextEdges().second);
+    next->setPosition(Vector3(1000, 0, 1000));*/
+
+    // Manual position debug test TODO: DELETE
+    e->displayVertex.position.x = 1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = 1000.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->displayVertex.position.x = 1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = -1000.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->displayVertex.position.x = -1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = -1000.0f;
+    e = &e->getHalfEdge(0).walk().structuralEdge;
+    e->displayVertex.position.x = -1000.0f;
+    e->displayVertex.position.y = 0.0f;
+    e->displayVertex.position.z = 1000.0f;
+
+    newSurfaceA->collapseDisplayList();
+    newSurfaceA->collapseTerrain();
 
     // exportTrianglesToObj("debug_pass1.obj", "ok");
 

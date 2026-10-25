@@ -9,7 +9,7 @@
 #include "CollisionManager.h"
 #include "DisplayListManager.h"
 #include "LevelPoolManager.h"
-#include "AgentManager.h"
+#include "SpaceAnchor.h"
 #include "actors/group15.h"
 #include "macro_preset_names.h"
 
@@ -73,7 +73,7 @@ inline Gfx *dynamicDisplayList(s32 callContext, struct GraphNode *node, UNUSED f
         generatedNode = (struct GraphNodeGenerated *) node;
         generatedNode->fnNode.node.flags = (generatedNode->fnNode.node.flags & 0xFF) | 0x500;
 
-        AgentManager::pivotSurface->collapseTerrain(); // TODO debería unificar ambos
+        SpaceAnchor::pivotHalfEdge->getBoundaryLoop().getSurface().collapseTerrain(); // TODO debería unificar ambos
         gSPDisplayList(displayListHead++, DisplayListManager::buildDisplayList());
         gSPEndDisplayList(displayListHead);
     }
