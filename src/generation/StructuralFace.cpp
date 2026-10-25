@@ -13,6 +13,7 @@
 #include <cmath>
 #include <vector>
 
+// TODO revisar todas estas redundancias
 namespace {
 
 using Tri = std::array<int, 3>;
@@ -110,6 +111,52 @@ std::vector<Tri> earClip(const std::vector<Vector3>& poly) {
     return out;
 }
 
+// Normal de Newell normalizada, con el mismo criterio de winding que earClip.
+Vector3 faceNormal(const std::vector<Vector3>& poly) {
+    double nx = 0, ny = 0, nz = 0;
+    const int n = static_cast<int>(poly.size());
+    for (int i = 0; i < n; ++i) {
+        const Vector3& a = poly[i];
+        const Vector3& b = poly[(i + 1) % n];
+        float ax = a.x, ay = a.y, az = a.z, bx = b.x, by = b.y, bz = b.z;
+        nx += (ay - by) * (az + bz);
+        ny += (az - bz) * (ax + bx);
+        nz += (ax - bx) * (ay + by);
+    }
+    return Vector3(static_cast<float>(nx), static_cast<float>(ny), static_cast<float>(nz)).normalized();
+}
+
+// TODO esto necesita su abstracción
+const u8* textureFor(TriangleFaceType type) {
+    switch (type) {
+        case TriangleFaceType::CheckerboardFloor:     return inside_09004000;
+        case TriangleFaceType::Lava:                  return fire_09009000;
+        case TriangleFaceType::InsideWallFirstFloor:  return inside_09001000;
+        case TriangleFaceType::InsideRoofFirstFloor:  return inside_09008000;
+        case TriangleFaceType::InsideWallWood:        return inside_09003800;
+        case TriangleFaceType::InsideWallBricks:      return inside_09003000;
+        case TriangleFaceType::BasementPillar:        return inside_09007000;
+        default:                                      return inside_09001000; // None: fallback visible
+    }
+}
+
+// Texturas de 32x32 texels, coordenadas en s10.5.
+constexpr float kTexSize = 32.0f;
+constexpr float kFrac = 32.0f;
+
+short toTexCoord(float texels) {
+    return static_cast<short>(std::max(-32768.0f, std::min(32767.0f, std::round(texels * kFrac))));
+}
+
+// Base 2D sobre el plano de la cara. Suelos/techos: u = +X. Paredes: u horizontal a lo largo de la pared.
+void planeBasis(const Vector3& n, Vector3& u, Vector3& v) {
+    Vector3 up(0, 1, 0);
+    float ny = n.y;
+    if (std::abs(ny) > 0.99f) u = Vector3(1, 0, 0);
+    else                      u = up.cross(n).normalized();
+    v = n.cross(u).normalized();
+}
+
 } // namespace
 
 extern "C" {
@@ -196,19 +243,67 @@ void StructuralFace::collapseTerrain() {
     }
     lastUsed = slot;
 }
+// TODO reciclar estructuras de datos para no usar tanta memoria y procesamiento innecesarios
 void StructuralFace::collapseDisplayList() {
-
-    std::vector<DisplayVertex> vertices;
-    HalfEdge* edge = &AgentManager::pivotEdge->getHalfEdge(0);
+    // 1. Polígono del outerLoop de ESTA cara, en orden cíclico.
+    std::vector<Vector3> poly;
+    HalfEdge* start = &getOuterLoop().getFirstEdge();
+    HalfEdge* h = start;
     do {
-        vertices.emplace_back(edge->structuralEdge.displayVertex);
-        edge = &edge->walk();
-    } while (edge != &AgentManager::pivotEdge->getHalfEdge(0));
+        poly.push_back(h->structuralEdge.displayVertex.position);
+        h = &h->walk();
+    } while (h != start);
 
-    std::vector<std::array<int, 3>> triangles = {
-        {0, 1, 2},
-        {0, 2, 3}
-    };
+    if (poly.size() < 3) return;
 
-    DisplayListManager::addDisplayListSegment(vertices, triangles, inside_09001000);
+    // 2. Misma triangulación que collapseTerrain: render y colisión no pueden divergir.
+    const auto tris = earClip(poly);
+    if (tris.empty()) return;
+
+    // 3. Atributos por cara (normal, UV): viven en la copia del vértice del segmento,
+    //    no en structuralEdge.displayVertex, porque esa arista la comparten dos caras.
+    const Vector3 normal = faceNormal(poly);
+    Vector3 uAxis, vAxis;
+    planeBasis(normal, uAxis, vAxis);
+
+    const int n = static_cast<int>(poly.size());
+    std::vector<float> us(n), vs(n);
+    float uMin = 1e30f, uMax = -1e30f, vMin = 1e30f, vMax = -1e30f;
+    for (int i = 0; i < n; ++i) {
+        us[i] = poly[i].dot(uAxis);
+        vs[i] = poly[i].dot(vAxis);
+        uMin = std::min(uMin, us[i]); uMax = std::max(uMax, us[i]);
+        vMin = std::min(vMin, vs[i]); vMax = std::max(vMax, vs[i]);
+    }
+
+    // 4. UV según uvConfig. Se trabaja relativo al mínimo para no desbordar el s10.5 en caras grandes.
+    std::vector<DisplayVertex> vertices;
+    vertices.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        float tu = 0.0f, tv = 0.0f; // en texels
+        if (const auto* rep = std::get_if<RepeatUV>(&uvConfig.mode)) {
+            float w = std::max<float>(1.0f, rep->tileWidth);
+            float hgt = std::max<float>(1.0f, rep->tileHeight);
+            tu = (us[i] - uMin) / w * kTexSize;
+            tv = (vs[i] - vMin) / hgt * kTexSize;
+        } else if (const auto* st = std::get_if<StretchUV>(&uvConfig.mode)) {
+            float du = std::max(uMax - uMin, 1e-3f);
+            float dv = std::max(vMax - vMin, 1e-3f);
+            float a = static_cast<float>(st->startPixel), b = static_cast<float>(st->endPixel);
+            tu = a + (us[i] - uMin) / du * (b - a);
+            tv = a + (vs[i] - vMin) / dv * (b - a);
+        }
+
+        DisplayVertex dv;
+        dv.position = poly[i];
+        dv.flag = 0;
+        dv.textureU = toTexCoord(tu);
+        dv.textureV = toTexCoord(tv);
+        dv.normal = normal;
+        vertices.push_back(dv);
+    }
+
+    std::vector<std::array<int, 3>> triangles(tris.begin(), tris.end());
+
+    DisplayListManager::addDisplayListSegment(vertices, triangles, textureFor(faceType));
 }
