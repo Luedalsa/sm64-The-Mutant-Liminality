@@ -31,7 +31,7 @@ public:
     static void addViolatedConstraint(Constraint* constraint) {
         constraints.push(constraint);
     }
-    static const std::priority_queue<Constraint*, std::vector<Constraint*>, std::function<bool(Constraint *, Constraint *)>>& getConstraints() {
+    static const std::priority_queue<Constraint*, std::vector<Constraint*>, std::function<bool(Constraint *, Constraint *)>>& getViolatedConstraints() {
         return constraints;
     }
     static const std::vector<Diagnostic>& getDiagnostics() {

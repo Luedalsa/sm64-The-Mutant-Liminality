@@ -26,7 +26,7 @@ struct StructuralEdge;
 struct ConstraintOperator {
     static bool ranAbiogenesis;
     static std::vector<StructuralEdge*> cellBorders;
-    static Scalar<ItemCount> itemCount/* = Scalar<ItemCount>()*/;
+    static ItemCount itemCount/* = Scalar<ItemCount>()*/;
     static InfiniteTravelInvariant* infiniteTravelInvariant;
 
     // genera nuevas aristas estructurales desde memoria basura y devuelve una arista estructural (crea vida a partir de materia inerte)
@@ -65,6 +65,11 @@ struct ConstraintOperator {
     static void inject(ARN& arn);
 
     static void grow();
+
+    static void applyBestOperator() {
+        assert(!Diagnosable::getViolatedConstraints().empty() && "ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
+        reWeight();
+    }
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_CONSTRAINTOPERATOR_H

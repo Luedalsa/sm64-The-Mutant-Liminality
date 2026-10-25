@@ -7,11 +7,13 @@
 bool ConstraintOperator::ranAbiogenesis = false;
 std::vector<StructuralEdge*> ConstraintOperator::cellBorders;
 
+ItemCount ConstraintOperator::itemCount = ItemCount(INT_MAX);
+InfiniteTravelInvariant* ConstraintOperator::infiniteTravelInvariant = new InfiniteTravelInvariant(itemCount);
+
 void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
     assert(!ranAbiogenesis
            && "BiologicalAbomination is still a singleton, Abiogenesis can only be run once.");
     ranAbiogenesis = true;
-    // infiniteTravelInvariant = new InfiniteTravelInvariant(itemCount);
 
     std::cout << "PELIGRO: aquí comienza un estado geométrico inválido, ningún hilo debe acceder a "
                  "esta memoria mientras se ejecuta la abiogénesis, ya que se están creando aristas "
@@ -26,7 +28,7 @@ void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
     auto *E = new StructuralEdge(*A);
     auto *F = new StructuralEdge(*A);
 
-    // itemCount.set(itemCount.value.value + 6);
+    itemCount.set(6);
 
     cellBorders.push_back(A);
     cellBorders.push_back(B);

@@ -7,6 +7,7 @@
 
 #include "ActorSpawnerManager.h"
 #include "CollisionManager.h"
+#include "ConstraintOperator.h"
 #include "DisplayListManager.h"
 #include "LevelPoolManager.h"
 #include "SpaceAnchor.h"
@@ -73,6 +74,7 @@ inline Gfx *dynamicDisplayList(s32 callContext, struct GraphNode *node, UNUSED f
         generatedNode = (struct GraphNodeGenerated *) node;
         generatedNode->fnNode.node.flags = (generatedNode->fnNode.node.flags & 0xFF) | 0x500;
 
+        ConstraintOperator::applyBestOperator();
         SpaceAnchor::pivotHalfEdge->getBoundaryLoop().getSurface().collapseTerrain(); // TODO debería unificar ambos
         gSPDisplayList(displayListHead++, DisplayListManager::buildDisplayList());
         gSPEndDisplayList(displayListHead);

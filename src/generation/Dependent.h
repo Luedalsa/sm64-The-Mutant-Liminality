@@ -6,7 +6,7 @@
 #define SM64_THE_MUTANT_LIMINALITY_DEPENDENT_H
 #include "ConstraintState.h"
 #include "Constraint.h"
-//#include "Diagnosable.h"
+#include "Diagnosable.h"
 
 #include <cassert>
 #include <cstdint>
@@ -20,9 +20,11 @@ private:
     int priority; // maybe move to scalar
     std::vector<Constraint*> observers = std::vector<Constraint*>();
     friend class Variable;
+protected:
+    T value;
 public:
 
-    T value;/*
+    /*
     operator T() const { return value; }
     operator short int() const {
         if (value > INT16_MAX || value < INT16_MIN) {
@@ -38,39 +40,44 @@ public:
     }
 */
 
-    const T& get(Constraint* key = nullptr) const {
+    const T& get(const Constraint* key = nullptr) const {
+        bool contradiction = false;
         for (auto constraint : observers) {
             if (constraint->state == ConstraintState::VIOLATED) {
-                bool is = false;
-                for (auto* c : observers) {
-                    if (c == constraint) {
-                            is = true;
-                            break;
-                    }
-                }
-                assert(is && "Dependent has a contradiction in its constraints.");
+                contradiction = true;
+                break;
             }
+        }
+        if (contradiction) {
+            for (auto* c : observers) {
+                if (c == key) { return value; }
+            }
+            assert("Dependent has a contradiction in its constraints.");
         }
         return value;
     }
     int getPriority() const {
         return priority;
     }
-/*
-    void set(T v) {
-    }
-*/
-    Scalar& operator=(T n) {
-        for (auto* c : observers) {/*
+
+    void set(T n) {
+        for (auto* c : observers) {
             c->state = ConstraintState::VIOLATED;
-            Diagnosable::addViolatedConstraint(c);*/
+            Diagnosable::addViolatedConstraint(c);
         }
         value = n;
-        return *this;
+    }
+
+    Scalar& operator=(T n) {
+        assert(false && "Direct assignment to Scalar is not allowed. Use set() method instead.");
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Scalar& a) {
         return os << a.value;
+    }
+
+    void addObserver(Constraint* constraint) {
+        observers.push_back(constraint);
     }
 };
 

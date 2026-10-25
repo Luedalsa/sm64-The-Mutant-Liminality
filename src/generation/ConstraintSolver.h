@@ -219,7 +219,9 @@ struct InfiniteTravelInvariant : public Constraint {
     }
     ItemCount& structuralEdgeCount;
 
-    InfiniteTravelInvariant(ItemCount& structuralEdgeCount) : structuralEdgeCount(structuralEdgeCount) {}
+    InfiniteTravelInvariant(ItemCount& structuralEdgeCount) : structuralEdgeCount(structuralEdgeCount) {
+        structuralEdgeCount.addObserver(this);
+    }
 
     float calculateConstraint() override {
         return 0.01f;
@@ -235,7 +237,7 @@ struct InfiniteTravelInvariant : public Constraint {
         } else {
             //Ribosome::printing.set(true);
         }
-        return SolutionStatus::POSTPONED;
+        return SolutionStatus::PROGRESS;
     }
 };
 
@@ -366,8 +368,8 @@ public:
         currentFrame++;
         bool continueSolving = true;
         while (continueSolving) {
-            assert(!Diagnosable::getConstraints().empty() && "ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
-            auto constraint = Diagnosable::getConstraints().top();
+            assert(!Diagnosable::getViolatedConstraints().empty() && "ConstraintSolver: No constraints to solve, Generator reached a deadlock so it can't generate more geometry, violating invariant of infinite travel.");
+            auto constraint = Diagnosable::getViolatedConstraints().top();
             if (constraint->state == ConstraintState::VIOLATED) {
                 SolutionStatus status = constraint->solve();
                 if (status == SolutionStatus::SUCCESS) {
@@ -389,7 +391,7 @@ public:
             } else {
                 assert(false && "ConstraintSolver: Constraint is not in CONTRADICTION state when checking constraints. Diagnoser didnt do a good job.");
             }
-            continueSolving = Diagnosable::getConstraints().top()->getSeverity() == ConstraintViolationSeverity::TotallyUnrepresentable;
+            continueSolving = Diagnosable::getViolatedConstraints().top()->getSeverity() == ConstraintViolationSeverity::TotallyUnrepresentable;
         }
     }
 };

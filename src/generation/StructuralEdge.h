@@ -7,7 +7,7 @@
 #include "Diagnosable.h"
 #include "SemanticEdge.h"
 #include "StructuralFace.h"
-#include "Constraintsolver.h"
+#include "ConstraintSolver.h"
 #include "Primitives.h"
 
 #include <cassert>

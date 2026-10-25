@@ -2,5 +2,5 @@
 // Constraint detection and resolution for the semantic generation graph.
 //
 
-#include "Constraintsolver.h"
+#include "ConstraintSolver.h"
 int ConstraintSolver::currentFrame;
