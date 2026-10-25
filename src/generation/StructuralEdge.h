@@ -24,6 +24,9 @@ class SemanticHalfEdge;
 class HalfEdge {
 private:
     HalfEdge(StructuralEdge& e, BoundaryLoop& s, HalfEdge& n);
+    ~HalfEdge() {
+        assert(false && "HalfEdge destructor called. This should not happen, as HalfEdges are managed by the system and should not be deleted manually.");
+    };
 
   BoundaryLoop * boundaryLoop;
     HalfEdge* nextEdge; // This value must NEVER be null
@@ -39,6 +42,7 @@ public:
     HalfEdge & walk() const;
 
     HalfEdge & getEvilTwin() const;
+    float getAngleSeparation() const;
 };
 
 // Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
@@ -80,17 +84,27 @@ public:
     Length semanticTension = Length(0);
 };
 
-struct BoundaryLoop {
-    StructuralFace& surface;
-    HalfEdge& edge;
+class BoundaryLoop {
+    BoundaryLoop(StructuralFace& s, HalfEdge& e) : surface(&s), edge(&e) {
+    }
+    StructuralFace* surface;
+    HalfEdge* edge;
+    friend struct BiologicalAbomination;
+public:
+    [[nodiscard]] StructuralFace& getSurface() const {
+        assert(surface != nullptr && "BoundaryLoop has no associated surface.");
+        assert(edge != nullptr && "BoundaryLoop has no associated edge.");
+        assert(&edge->getBoundaryLoop() == this && "BoundaryLoop's edge does not point back to this BoundaryLoop.");
+        return *surface;
+    }
 
     [[nodiscard]] int getEdgeCount() const { // TODO temp maybe
         int count = 0;
-        HalfEdge* currentEdge = &edge;
+        HalfEdge* currentEdge = edge;
         do {
             count++;
             currentEdge = &currentEdge->walk();
-        } while (currentEdge != &edge);
+        } while (currentEdge != edge);
         return count;
     }
 };

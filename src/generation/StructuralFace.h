@@ -26,6 +26,7 @@ extern "C" {
 #include <vector>
 
 struct StructuralEdge;
+struct BoundaryLoop;
 class ARN;
 
 struct Triangulation {
@@ -36,13 +37,14 @@ struct Triangulation {
     std::variant<Leaf, Fork> node;
 };
 
-class StructuralFace : public Diagnosable {
+class StructuralFace {
+    BoundaryLoop* outerLoop;
+    StructuralFace(BoundaryLoop& loop) : outerLoop(&loop) {}
+    friend struct BiologicalAbomination;
 public:
     Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
-    StructuralFace();
     ~StructuralFace();
-    ;
-
+    [[nodiscard]] BoundaryLoop &getOuterLoop() const;
     std::unique_ptr<Triangulation> triangulation;
     TriangleFaceType faceType = TriangleFaceType::None;
     SurfaceUVConfig uvConfig = SurfaceUVConfig{StretchUV{0, 32}};

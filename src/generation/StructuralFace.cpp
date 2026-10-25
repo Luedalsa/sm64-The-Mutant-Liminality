@@ -24,11 +24,12 @@ extern "C" {
     #include "engine/surface_load.h"
 }
 
-StructuralFace::StructuralFace() {
-}
 StructuralFace::~StructuralFace() {
     assert(false && "StructuralFace destructor called. This should not happen, as StructuralFaces are managed by "
                     "the system and should not be deleted manually.");
+}
+BoundaryLoop& StructuralFace::getOuterLoop() const {
+    return *outerLoop;
 }
 void StructuralFace::collapseTerrain() {
     sSurfacePool[0].type = SURFACE_DEFAULT;

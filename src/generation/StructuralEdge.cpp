@@ -34,6 +34,12 @@ HalfEdge &HalfEdge::getEvilTwin() const {
     return (this == &structuralEdge.getHalfEdge(0)) ? structuralEdge.getHalfEdge(1)
                                                     : structuralEdge.getHalfEdge(0);
 }
+float HalfEdge::getAngleSeparation() const {
+    HalfEdge* t = &getEvilTwin();
+    do { t = &t->walk(); } while (t != &getEvilTwin());
+    auto edgeFacesSeparation = t->structuralEdge.stableSeparation;
+    return -M_PI / 2.0f; // TODO: calcular separación angular entre dos medias aristas estructurales en 3D
+}
 std::queue<ARN> Ribosome::mitosisPlans;
 std::vector<StructuralEdge*> BiologicalAbomination::cellBorders;
 
@@ -65,15 +71,22 @@ void BiologicalAbomination::abiogenesis(StructuralEdge *&edge) {
     cellBorders.push_back(E);
     cellBorders.push_back(F);
 
-    auto *sA = new StructuralFace();
-    auto *sB = new StructuralFace();
-    auto *sC = new StructuralFace();
-    auto *sD = new StructuralFace();
+    auto loop = static_cast<BoundaryLoop *>(malloc(sizeof(BoundaryLoop)));
+
+    auto *sA = new StructuralFace{*loop};
+    auto *sB = new StructuralFace{*loop};
+    auto *sC = new StructuralFace{*loop};
+    auto *sD = new StructuralFace{*loop};
 
     auto *lA = new BoundaryLoop{ *sA, A->halfEdges[0] };
     auto *lB = new BoundaryLoop{ *sB, B->halfEdges[1] };
     auto *lC = new BoundaryLoop{ *sC, C->halfEdges[1] };
     auto *lD = new BoundaryLoop{ *sD, A->halfEdges[1] };
+
+    sA->outerLoop = lA;
+    sB->outerLoop = lB;
+    sC->outerLoop = lC;
+    sD->outerLoop = lD;
 
     auto link = [](HalfEdge &h, HalfEdge &next, BoundaryLoop *loop) {
         h.nextEdge = &next;
