@@ -97,6 +97,11 @@ public:
         assert(&edge->getBoundaryLoop() == this && "BoundaryLoop's edge does not point back to this BoundaryLoop.");
         return *surface;
     }
+    
+    [[nodiscard]] HalfEdge& getFirstEdge() const {
+        assert(edge != nullptr && "BoundaryLoop has no associated edge.");
+        return *edge;
+    }
 
     [[nodiscard]] int getEdgeCount() const { // TODO temp maybe
         int count = 0;
