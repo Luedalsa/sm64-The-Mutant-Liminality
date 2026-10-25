@@ -60,7 +60,6 @@ private:
 
     }
     HalfEdge halfEdges[2]; // par no ordenado, quizas crear una estructura de datos para encapsular y operar sobre ellos
-    Length stableSize = Length(1000);
     // Probablemente añada operadores sustractivos
     ~StructuralEdge() {
         assert(false && "StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
@@ -79,6 +78,10 @@ public:
     DisplayVertex displayVertex = DisplayVertex{{0, 0, 0}, 0, 0, 0, Vector3::zero()};
     float stableSeparation = M_PI / 2.0f; // TODO: esto debería ser un Theta, pero por ahora lo dejo como float para simplificar la implementación inicial
     Length semanticTension = Length(0);
+
+    Length stableSize = Length(1000);
+    Theta theta = Theta(0);
+    Theta phi = Theta(0);
 };
 
 class BoundaryLoop {

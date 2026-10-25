@@ -32,27 +32,27 @@ static constexpr Lights1 globalLights = gdSPDefLights1(
 
 
 class DisplayListManager {
-    static std::vector<std::vector<DisplayVertex>> displayVertices;
+    static std::vector<std::vector<DisplayVertex*>> displayVertices;
     static std::vector<std::vector<std::array<int, 3>>> displayTriangles;
     static std::vector<const u8*> displayTextures;
 
-    static Vtx* buildVertexSegment(const std::vector<DisplayVertex>& vertices) {
+    static Vtx* buildVertexSegment(const std::vector<DisplayVertex*>& vertices) {
         if (vertices.size() > 32) {
             throw std::length_error("Vertex segment exceeds maximum size of 32 vertices.");
         }
 
         Vtx* vertexSegment = LevelPoolManager::allocOnPool<Vtx>(vertices.size());
         for (size_t i = 0; i < vertices.size(); i++) {
-            vertexSegment[i] = vertices[i];
+            vertexSegment[i] = *vertices[i];
         }
 
         return vertexSegment;
     }
-static Gfx* buildDisplayListSegment(const std::vector<DisplayVertex>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
+static Gfx* buildDisplayListSegment(const std::vector<DisplayVertex*>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
     constexpr size_t maxVertsPerLoad = 32;
 
     struct Chunk {
-        std::vector<DisplayVertex> verts;
+        std::vector<DisplayVertex*> verts;
         std::vector<std::array<int, 3>> tris;
     };
     std::vector<Chunk> chunks;
@@ -115,7 +115,7 @@ static Gfx* buildDisplayListSegment(const std::vector<DisplayVertex>& vertices, 
 
 public:
 
-    static void addDisplayListSegment(const std::vector<DisplayVertex>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
+    static void addDisplayListSegment(const std::vector<DisplayVertex*>& vertices, const std::vector<std::array<int, 3>>& triangles, const u8* texture) {
         displayVertices.push_back(vertices);
         displayTriangles.push_back(triangles);
         displayTextures.push_back(texture);

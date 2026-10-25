@@ -94,21 +94,21 @@ s32 castle_init(s16 arg, s32 unused) {
     next->setPosition(Vector3(1000, 0, 1000));*/
 
     // Manual position debug test TODO: DELETE
-    e->displayVertex.position.x = 1000.0f;
-    e->displayVertex.position.y = 0.0f;
-    e->displayVertex.position.z = 1000.0f;
+    e->displayVertex.position[0].set(1000.0f);
+    e->displayVertex.position[1].set(0.0f);
+    e->displayVertex.position[2].set(1000.0f);
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->displayVertex.position.x = 1000.0f;
-    e->displayVertex.position.y = 0.0f;
-    e->displayVertex.position.z = -1000.0f;
+    e->displayVertex.position[0].set(1000.0f);
+    e->displayVertex.position[1].set(0.0f);
+    e->displayVertex.position[2].set(-1000.0f);
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->displayVertex.position.x = -1000.0f;
-    e->displayVertex.position.y = 0.0f;
-    e->displayVertex.position.z = -1000.0f;
+    e->displayVertex.position[0].set(-1000.0f);
+    e->displayVertex.position[1].set(0.0f);
+    e->displayVertex.position[2].set(-1000.0f);
     e = &e->getHalfEdge(0).walk().structuralEdge;
-    e->displayVertex.position.x = -1000.0f;
-    e->displayVertex.position.y = 0.0f;
-    e->displayVertex.position.z = 1000.0f;
+    e->displayVertex.position[0].set(-1000.0f);
+    e->displayVertex.position[1].set(0.0f);
+    e->displayVertex.position[2].set(1000.0f);
 
     newSurfaceA->collapseDisplayList();
     newSurfaceA->collapseTerrain();

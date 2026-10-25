@@ -217,7 +217,9 @@ void StructuralFace::collapseTerrain() {
     HalfEdge* start = &getOuterLoop().getFirstEdge();
     HalfEdge* h = start;
     do {
-        poly.push_back(h->structuralEdge.displayVertex.position);
+        poly.push_back({h->structuralEdge.displayVertex.position[0].get(),
+                        h->structuralEdge.displayVertex.position[1].get(),
+                        h->structuralEdge.displayVertex.position[2].get()});
         h = &h->walk();
     } while (h != start);
 
@@ -249,15 +251,17 @@ void StructuralFace::collapseDisplayList() {
     HalfEdge* start = &getOuterLoop().getFirstEdge();
     HalfEdge* h = start;
     do {
-        poly.push_back(h->structuralEdge.displayVertex.position);
+        poly.push_back({h->structuralEdge.displayVertex.position[0].get(),
+                        h->structuralEdge.displayVertex.position[1].get(),
+                        h->structuralEdge.displayVertex.position[2].get()});
         h = &h->walk();
     } while (h != start);
 
-    if (poly.size() < 3) return;
+    assert (poly.size() >= 3 && "StructuralFace::collapseDisplayList: outerLoop must have at least 3 vertices.");
 
     // 2. Misma triangulación que collapseTerrain: render y colisión no pueden divergir.
     const auto tris = earClip(poly);
-    if (tris.empty()) return;
+    assert(!tris.empty() && "StructuralFace::collapseDisplayList: triangulation failed.");
 
     // 3. Atributos por cara (normal, UV): viven en la copia del vértice del segmento,
     //    no en structuralEdge.displayVertex, porque esa arista la comparten dos caras.
@@ -276,8 +280,9 @@ void StructuralFace::collapseDisplayList() {
     }
 
     // 4. UV según uvConfig. Se trabaja relativo al mínimo para no desbordar el s10.5 en caras grandes.
-    std::vector<DisplayVertex> vertices;
+    std::vector<DisplayVertex*> vertices;
     vertices.reserve(n);
+    h = start;
     for (int i = 0; i < n; ++i) {
         float tu = 0.0f, tv = 0.0f; // en texels
         if (const auto* rep = std::get_if<RepeatUV>(&uvConfig.mode)) {
@@ -293,12 +298,15 @@ void StructuralFace::collapseDisplayList() {
             tv = a + (vs[i] - vMin) / dv * (b - a);
         }
 
-        DisplayVertex dv;
-        dv.position = poly[i];
-        dv.flag = 0;
-        dv.textureU = toTexCoord(tu);
-        dv.textureV = toTexCoord(tv);
-        dv.normal = normal;
+        h = &h->walk();
+        DisplayVertex* dv = &h->structuralEdge.displayVertex;
+        dv->position[0].set(poly[i].x);
+        dv->position[1].set(poly[i].y);
+        dv->position[2].set(poly[i].z);
+        dv->flag = 0;
+        dv->textureU = toTexCoord(tu);
+        dv->textureV = toTexCoord(tv);
+        dv->normal = normal;
         vertices.push_back(dv);
     }
 

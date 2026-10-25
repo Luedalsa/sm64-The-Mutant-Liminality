@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cmath>
 #include <iostream>
+#include "Dependent.h"
 
 template <typename T>
 struct Axis {
@@ -158,7 +159,7 @@ struct SurfaceTransform {
 };
 
 struct DisplayVertex {
-    Vector3 position;
+    VAxis position[3];
     short int flag = 0;
     short int textureU;
     short int textureV;
@@ -166,9 +167,9 @@ struct DisplayVertex {
 
     operator Vtx() const {
         Vtx vtx{};
-        vtx.n.ob[0] = static_cast<short>(position.x); // Axis ya trunca/avisa
-        vtx.n.ob[1] = static_cast<short>(position.y);
-        vtx.n.ob[2] = static_cast<short>(position.z);
+        vtx.n.ob[0] = static_cast<short>(position[0].get());
+        vtx.n.ob[1] = static_cast<short>(position[1].get());
+        vtx.n.ob[2] = static_cast<short>(position[2].get());
         vtx.n.flag  = static_cast<unsigned short>(flag);
         vtx.n.tc[0] = textureU;
         vtx.n.tc[1] = textureV;
