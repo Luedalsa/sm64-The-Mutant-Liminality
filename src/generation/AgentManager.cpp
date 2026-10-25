@@ -1,6 +1,7 @@
 // src/generation/AgentManager.cpp
 #include "AgentManager.h"
 
+#include "ConstraintOperator.h"
 #include "Constraintsolver.h"
 #include "SemanticCompiler.h"
 #include "SemanticEdge.h"
@@ -116,8 +117,8 @@ void AgentManager::start() {
     std::vector<StructuralEdge*> e2;
     StructuralFace* newSurfaceA;
 
-    BiologicalAbomination::abiogenesis(e);
-    BiologicalAbomination::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
+    ConstraintOperator::abiogenesis(e);
+    ConstraintOperator::cellWallGrow(e->getHalfEdge(0), e->getHalfEdge(1).walk().walk(), e2, newSurfaceA);
     newSurfaceA = &e->getHalfEdge(0).getBoundaryLoop().getSurface();
 
     pivotEdge = e;

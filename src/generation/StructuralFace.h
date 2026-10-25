@@ -40,7 +40,7 @@ struct Triangulation {
 class StructuralFace {
     BoundaryLoop* outerLoop;
     StructuralFace(BoundaryLoop& loop) : outerLoop(&loop) {}
-    friend struct BiologicalAbomination;
+    friend struct ConstraintOperator;
 public:
     Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
     ~StructuralFace();

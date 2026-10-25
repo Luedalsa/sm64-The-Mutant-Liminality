@@ -11,13 +11,10 @@
 #include "Primitives.h"
 
 #include <cassert>
-#include <stack>
 #include <utility>
-#include <vector>
 
 class StructuralFace;
 struct StructuralEdge;
-struct BiologicalAbomination;
 struct BoundaryLoop;
 class SemanticHalfEdge;
 
@@ -31,7 +28,7 @@ private:
   BoundaryLoop * boundaryLoop;
     HalfEdge* nextEdge; // This value must NEVER be null
     friend struct StructuralEdge;
-    friend struct BiologicalAbomination;
+    friend struct ConstraintOperator;
 public:
     //SemanticHalfEdge& semanticHalfEdge; // nuevo: Arista de fidelidad, se utiliza para medir tensión semántica entre dos superficies y para calcular la fidelidad (por fin la primera aparición de fidelidad en el proyecto)
     TriangleFaceType stableSurfaceType;
@@ -69,7 +66,7 @@ private:
         assert(false && "StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
     };
 
-    friend struct BiologicalAbomination;
+    friend struct ConstraintOperator;
 public:
 
     // TODO: Los half edges son pares no ordenados, no se debería acceder arbitrariamente a un primero o segundo
@@ -89,7 +86,7 @@ class BoundaryLoop {
     }
     StructuralFace* surface;
     HalfEdge* edge;
-    friend struct BiologicalAbomination;
+    friend struct ConstraintOperator;
 public:
     [[nodiscard]] StructuralFace& getSurface() const {
         assert(surface != nullptr && "BoundaryLoop has no associated surface.");
@@ -157,65 +154,6 @@ public:
         }
         return *nextEdge;
     }
-};
-
-// La cantidad de operadores debe ser el mínimo posible
-
-// Mudando a operadores b-rep Euler
-// Operadores topológicos: mitosis, fold
-// Operadores semánticos: heredar de otra arista, relaciones, proporciones, angulos, textura
-// operadores propagadores: resuelven mediante ecuaciones de las restricciones a traves de las variable y scalar, propagando cambios a otras aristas y superficies
-// Invariante: La geometría se renderiza entre cada operación, por lo que los operadores deben recibir geometría renderizable y devolver geometría renderizable.
-// Invariante: la geometría es un grafo de grado >=3, cada uno de los vértices de la geometría debe estar conectado a más de 2 aristas, y cada arista debe estar conectada a exactamente 2 superficies. La estructura de datos y los operadores deben reflejarla
-// La topología es una esfera, los toros están fuera del alcance del proyecto por que no tienen apariciones relevantes en la topología de Mario 64
-// Nueva idea: tal vez debería hacer un corte boundary loop en la geometría semántica y garantizar su conexión topológicamente correcta mediante un contrato, ambas partes pueden ser modificadas para encajar, aún si violan la separación angular por parte de la semántica
-// Se basaría en las diferencias de semántica de medias aristas para decidir hasta donde cortar, se preferirá bordear las aristas semánticas con alta diferencia semántica, mientras que se preferirá incluir medias aristas con baja diferencia
-// Mientras haya fidelidad arquitectónica baja, o la habitación sea demasiado pequeña, se preferirá cortar un trozo más grande de la semántica. No estoy seguro de que vocabulario usar para describirlo.
- // Se preferirá hacer cortes cuyas medias aristas
-// semánticas involucren la menor cantidad de superficies posibles (mínimo 3 para preservar la
-// invariante de vértices grado >= 3)
-struct BiologicalAbomination {
-    static bool ranAbiogenesis;
-    static std::vector<StructuralEdge*> cellBorders;
-    static Scalar<ItemCount> itemCount/* = Scalar<ItemCount>()*/;
-    static InfiniteTravelInvariant* infiniteTravelInvariant;
-
-    // genera nuevas aristas estructurales desde memoria basura y devuelve una arista estructural (crea vida a partir de materia inerte)
-    // TODO cubrir todas las propiedades
-    static void abiogenesis(StructuralEdge*& edge);
-
-    // La posición del nuevo edge siempre será indefinida, activará un TotallyUnrepresentableState.
-    // Los structural edges de salida serán promesas que heredarán semántica, no están listos para ser usados.
-    static void cellWallGrow(HalfEdge& halfEdgeA, HalfEdge& halfEdgeB, std::vector<StructuralEdge*>& outStructuralEdges, StructuralFace*& outNewSurface);
-    /*  Merging this code with mitosis.
-        static void fold(HalfEdge& edgeA, HalfEdge& edgeB, StructuralEdge*& outStructuralEdge,
-       StructuralFace*& outStructuralFace) { StructuralFace* newSurface = new StructuralFace();
-            StructuralEdge* newEdge = new StructuralEdge(edgeA.structuralEdge); // TODO complete
-
-            if (&edgeA.surface != &edgeB.surface) {
-                throw NonRecoverableContradictionException("Cannot fold edges from different
-       surfaces.");
-            }
-
-            HalfEdge* h = &edgeA;
-
-            while (h != &edgeB) {
-                h->surface = newSurface;
-                h = h->nextEdge;
-            }
-            edgeB.surface = newSurface;
-
-            outStructuralEdge = newEdge;
-            outStructuralFace = newSurface;
-        }*/
-
-    static void inheritRelation(StructuralEdge& fromEdge, StructuralEdge& toEdge);
-
-    static void reWeight();
-
-    static void inject(ARN& arn);
-
-    static void grow();
 };
 
 #endif // SM64_THE_MUTANT_LIMINALITY_STRUCTURALEDGE_H
