@@ -208,7 +208,21 @@ StructuralFace::~StructuralFace() {
     assert(false && "StructuralFace destructor called. This should not happen, as StructuralFaces are managed by "
                     "the system and should not be deleted manually.");
 }
+void StructuralFace::linkOuterLoop(BoundaryLoop& loop) {
+    assert(outerLoop == nullptr
+           && "StructuralFace::linkOuterLoop: outerLoop is already linked and its link is immutable.");
+    if (outerLoop != nullptr) {
+        throw NonRecoverableContradictionException(
+            "StructuralFace outerLoop is already linked and its link is immutable.");
+    }
+    outerLoop = &loop;
+}
 BoundaryLoop& StructuralFace::getOuterLoop() const {
+    assert(outerLoop != nullptr
+           && "StructuralFace::getOuterLoop: StructuralFace has no associated outerLoop.");
+    if (outerLoop == nullptr) {
+        throw NonRecoverableContradictionException("StructuralFace has no associated outerLoop.");
+    }
     return *outerLoop;
 }
 void StructuralFace::collapseTerrain() {

@@ -6,20 +6,37 @@
 
 #include <cassert>
 
-HalfEdge::HalfEdge(StructuralEdge &e, BoundaryLoop &s, HalfEdge &n)
-    : boundaryLoop(&s), nextEdge(&n), /*semanticHalfEdge(), */ structuralEdge(e) {
+HalfEdge::HalfEdge(StructuralEdge &e) : /*semanticHalfEdge(), */ structuralEdge(e) {
+}
+void HalfEdge::linkBoundaryLoop(BoundaryLoop &loop) {
+    assert(boundaryLoop == nullptr
+        && "HalfEdge linkBoundaryLoop() called on a HalfEdge that already has a boundaryLoop. "
+           "This link is immutable once set.");
+    if (boundaryLoop != nullptr) {
+        throw NonRecoverableContradictionException(
+            "HalfEdge already has a boundaryLoop and its link is immutable.");
+    }
+    boundaryLoop = &loop;
 }
 BoundaryLoop &HalfEdge::getBoundaryLoop() const {
     assert(boundaryLoop != nullptr
         && "HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop. This should not "
            "happen, as HalfEdges are managed by the system and should always have a valid "
            "boundaryLoop.");
+    if (boundaryLoop == nullptr) {
+        throw NonRecoverableContradictionException(
+            "HalfEdge getBoundaryLoop() called on a HalfEdge with null boundaryLoop.");
+    }
     return *boundaryLoop;
 }
 HalfEdge &HalfEdge::walk() const {
     assert(nextEdge != nullptr
         && "HalfEdge walk() called on a HalfEdge with null nextEdge. This should not happen, as "
            "HalfEdges are managed by the system and should always have a valid nextEdge.");
+    if (nextEdge == nullptr) {
+        throw NonRecoverableContradictionException(
+            "HalfEdge walk() called on a HalfEdge with null nextEdge.");
+    }
     assert(nextEdge != this
         && "HalfEdge walk() called on a HalfEdge that points to itself as nextEdge. This should not "
            "happen, as HalfEdges are managed by the system and should always have a valid nextEdge.");

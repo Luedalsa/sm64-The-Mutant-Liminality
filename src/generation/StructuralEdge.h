@@ -9,6 +9,7 @@
 #include "StructuralFace.h"
 #include "ConstraintSolver.h"
 #include "Primitives.h"
+#include "NonRecoverableContradictionException.h"
 
 #include <cassert>
 #include <utility>
@@ -20,13 +21,18 @@ class SemanticHalfEdge;
 
 class HalfEdge {
 private:
-    HalfEdge(StructuralEdge& e, BoundaryLoop& s, HalfEdge& n);
+    HalfEdge(StructuralEdge& e);
     ~HalfEdge() {
         assert(false && "HalfEdge destructor called. This should not happen, as HalfEdges are managed by the system and should not be deleted manually.");
     };
 
-  BoundaryLoop * boundaryLoop;
-    HalfEdge* nextEdge; // This value must NEVER be null
+    // Links boundaryLoop exactly once, after construction. Only ConstraintOperator can call it.
+    void linkBoundaryLoop(BoundaryLoop& loop);
+
+    BoundaryLoop* boundaryLoop = nullptr; // Immutable once linked
+    // Must NEVER be null once the HalfEdge has been linked. It is the only link that can be
+    // reassigned, because ConstraintOperator::cellWallGrow splices half edge rings.
+    HalfEdge* nextEdge = nullptr;
     friend struct StructuralEdge;
     friend struct ConstraintOperator;
 public:
@@ -49,10 +55,7 @@ public:
 struct StructuralEdge : Diagnosable {
 private:
     StructuralEdge(StructuralEdge & structuralEdge)
-      : halfEdges{ HalfEdge(*this, *structuralEdge.halfEdges[0].boundaryLoop,
-                            *structuralEdge.halfEdges[0].nextEdge),
-                   HalfEdge(*this, *structuralEdge.halfEdges[1].boundaryLoop,
-                            *structuralEdge.halfEdges[1].nextEdge) },
+      : halfEdges{ HalfEdge(*this), HalfEdge(*this) },
         //stableSize(structuralEdge.stableSize),
         displayVertex(structuralEdge.displayVertex),
         //stableSeparation(structuralEdge.stableSeparation),
@@ -85,31 +88,46 @@ public:
 };
 
 class BoundaryLoop {
-    BoundaryLoop(StructuralFace& s, HalfEdge& e) : surface(&s), edge(&e) {
+    BoundaryLoop() = default;
+    StructuralFace* surface = nullptr;
+    HalfEdge* edge = nullptr;
+
+    // Links surface and edge exactly once, after construction. Only ConstraintOperator can call it.
+    void link(StructuralFace& s, HalfEdge& e) {
+        assert(surface == nullptr && edge == nullptr && "BoundaryLoop is already linked.");
+        if (surface != nullptr || edge != nullptr) {
+            throw NonRecoverableContradictionException("BoundaryLoop is already linked and its links are immutable.");
+        }
+        surface = &s;
+        edge = &e;
     }
-    StructuralFace* surface;
-    HalfEdge* edge;
     friend struct ConstraintOperator;
 public:
     [[nodiscard]] StructuralFace& getSurface() const {
         assert(surface != nullptr && "BoundaryLoop has no associated surface.");
-        assert(edge != nullptr && "BoundaryLoop has no associated edge.");
-        assert(&edge->getBoundaryLoop() == this && "BoundaryLoop's edge does not point back to this BoundaryLoop.");
+        if (surface == nullptr) {
+            throw NonRecoverableContradictionException("BoundaryLoop has no associated surface.");
+        }
+        assert(&getFirstEdge().getBoundaryLoop() == this && "BoundaryLoop's edge does not point back to this BoundaryLoop.");
         return *surface;
     }
     
     [[nodiscard]] HalfEdge& getFirstEdge() const {
         assert(edge != nullptr && "BoundaryLoop has no associated edge.");
+        if (edge == nullptr) {
+            throw NonRecoverableContradictionException("BoundaryLoop has no associated edge.");
+        }
         return *edge;
     }
 
     [[nodiscard]] int getEdgeCount() const { // TODO temp maybe
         int count = 0;
-        HalfEdge* currentEdge = edge;
+        HalfEdge* firstEdge = &getFirstEdge();
+        HalfEdge* currentEdge = firstEdge;
         do {
             count++;
             currentEdge = &currentEdge->walk();
-        } while (currentEdge != edge);
+        } while (currentEdge != firstEdge);
         return count;
     }
 };

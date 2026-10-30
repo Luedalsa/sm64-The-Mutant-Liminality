@@ -37,26 +37,30 @@ void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
     cellBorders.push_back(E);
     cellBorders.push_back(F);
 
-    auto loop = static_cast<BoundaryLoop *>(malloc(sizeof(BoundaryLoop)));
+    auto *sA = new StructuralFace();
+    auto *sB = new StructuralFace();
+    auto *sC = new StructuralFace();
+    auto *sD = new StructuralFace();
 
-    auto *sA = new StructuralFace{*loop};
-    auto *sB = new StructuralFace{*loop};
-    auto *sC = new StructuralFace{*loop};
-    auto *sD = new StructuralFace{*loop};
+    auto *lA = new BoundaryLoop();
+    auto *lB = new BoundaryLoop();
+    auto *lC = new BoundaryLoop();
+    auto *lD = new BoundaryLoop();
 
-    auto *lA = new BoundaryLoop{ *sA, A->halfEdges[0] };
-    auto *lB = new BoundaryLoop{ *sB, B->halfEdges[1] };
-    auto *lC = new BoundaryLoop{ *sC, C->halfEdges[1] };
-    auto *lD = new BoundaryLoop{ *sD, A->halfEdges[1] };
+    // Every object is built unlinked; the links are established now, once, by this operator.
+    lA->link(*sA, A->halfEdges[0]);
+    lB->link(*sB, B->halfEdges[1]);
+    lC->link(*sC, C->halfEdges[1]);
+    lD->link(*sD, A->halfEdges[1]);
 
-    sA->outerLoop = lA;
-    sB->outerLoop = lB;
-    sC->outerLoop = lC;
-    sD->outerLoop = lD;
+    sA->linkOuterLoop(*lA);
+    sB->linkOuterLoop(*lB);
+    sC->linkOuterLoop(*lC);
+    sD->linkOuterLoop(*lD);
 
     auto link = [](HalfEdge &h, HalfEdge &next, BoundaryLoop *loop) {
         h.nextEdge = &next;
-        h.boundaryLoop = loop;
+        h.linkBoundaryLoop(*loop);
     };
 
     // Cara A: A0 → B0 → C0
@@ -122,12 +126,12 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
     HalfEdge *originalNext = halfEdgeA.nextEdge;
     halfEdgeA.nextEdge = &newEdge->halfEdges[0];
     newEdge->halfEdges[0].nextEdge = originalNext;
-    newEdge->halfEdges[0].boundaryLoop = halfEdgeA.boundaryLoop;
+    newEdge->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
 
     originalNext = halfEdgeB.nextEdge;
     halfEdgeB.nextEdge = &newEdge->halfEdges[1];
     newEdge->halfEdges[1].nextEdge = originalNext;
-    newEdge->halfEdges[1].boundaryLoop = halfEdgeB.boundaryLoop;
+    newEdge->halfEdges[1].linkBoundaryLoop(halfEdgeB.getBoundaryLoop());
 
     outStructuralEdges.push_back(newEdge);
 
@@ -137,17 +141,18 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
     auto newEdge2 = new StructuralEdge(halfEdgeB.structuralEdge);
     outStructuralEdges.push_back(newEdge2);
 
-    auto loop = static_cast<BoundaryLoop *>(malloc(sizeof(BoundaryLoop)));
-    outNewSurface = new StructuralFace(*loop);
+    outNewSurface = new StructuralFace();
+    auto *newLoop = new BoundaryLoop();
 
     originalNext = halfEdgeA.nextEdge;
     halfEdgeA.nextEdge = &newEdge2->halfEdges[0];
     newEdge2->halfEdges[0].nextEdge = originalNext->nextEdge->nextEdge;
     originalNext->nextEdge->nextEdge = &newEdge2->halfEdges[1];
     newEdge2->halfEdges[1].nextEdge = originalNext;
-    newEdge2->halfEdges[0].boundaryLoop = halfEdgeA.boundaryLoop;
-    newEdge2->halfEdges[1].boundaryLoop = new BoundaryLoop{ *outNewSurface, newEdge2->halfEdges[1] };
-    outNewSurface->outerLoop = newEdge2->halfEdges[1].boundaryLoop;
+    newEdge2->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
+    newLoop->link(*outNewSurface, newEdge2->halfEdges[1]);
+    outNewSurface->linkOuterLoop(*newLoop);
+    newEdge2->halfEdges[1].linkBoundaryLoop(*newLoop);
 
     std::cout << "Fin de la mitosis, se han creado 2 aristas estructurales y 1 superficie estructural."
               << std::endl;

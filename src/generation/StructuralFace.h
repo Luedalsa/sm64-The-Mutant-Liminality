@@ -38,8 +38,10 @@ struct Triangulation {
 };
 
 class StructuralFace {
-    BoundaryLoop* outerLoop;
-    StructuralFace(BoundaryLoop& loop) : outerLoop(&loop) {}
+    BoundaryLoop* outerLoop = nullptr; // Immutable once linked
+    StructuralFace() = default;
+    // Links outerLoop exactly once, after construction. Only ConstraintOperator can call it.
+    void linkOuterLoop(BoundaryLoop& loop);
     friend struct ConstraintOperator;
 public:
     Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
