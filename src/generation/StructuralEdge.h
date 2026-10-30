@@ -37,7 +37,7 @@ private:
     friend struct ConstraintOperator;
 public:
     //SemanticHalfEdge& semanticHalfEdge; // nuevo: Arista de fidelidad, se utiliza para medir tensión semántica entre dos superficies y para calcular la fidelidad (por fin la primera aparición de fidelidad en el proyecto)
-    TriangleFaceType stableSurfaceType;
+    TriangleFaceType stableSurfaceType = TriangleFaceType::CheckerboardFloor;
     StructuralEdge& structuralEdge;
 
     BoundaryLoop& getBoundaryLoop() const;
@@ -48,20 +48,17 @@ public:
     float getAngleSeparation() const;
 };
 
-// Nótese que StructuralEdge no tiene un constructor por defecto, ya que siempre debe estar asociado a dos superficies y dos edges siguientes. Esto garantiza que la estructura de la geometría sea consistente y evita la creación de edges huérfanos o mal definidos.
-// Es una invariante del sistema que cada StructuralEdge esté correctamente conectado a sus superficies y edges adyacentes, tambien reduce las vulnerabilidades en la estructura de datos en runtime, no necesita asserts y reduce la carga cognitiva de mantener toda la arquitectura en mi memoria de trabajo al momento de establecer restricciones
+// Nótese que StructuralEdge solo puede ser construida por ConstraintOperator, sin recibir otra StructuralEdge: sus medias aristas nacen sin enlazar (punteros nulos) y ConstraintOperator las conecta después a sus superficies y edges adyacentes.
+// Es una invariante del sistema que cada StructuralEdge esté correctamente conectado a sus superficies y edges adyacentes una vez termina la operación que la creó
 // Los vértices no tienen estructura de datos para evitar redundancias, evitar problemas de sincronización y ahorrar memoria
 // TODO debido a la nueva propiedad semanticHalfEdge, toda arista estructural deberá construirse con todas sus propiedades ya definidas
 struct StructuralEdge : Diagnosable {
 private:
-    StructuralEdge(StructuralEdge & structuralEdge)
-      : halfEdges{ HalfEdge(*this), HalfEdge(*this) },
-        //stableSize(structuralEdge.stableSize),
-        displayVertex(structuralEdge.displayVertex),
-        //stableSeparation(structuralEdge.stableSeparation),
-        semanticTension(structuralEdge.semanticTension) {
-
+    // No recibe otra StructuralEdge: todas sus propiedades se inicializan con valores por defecto o punteros nulos.
+    StructuralEdge() : halfEdges{ HalfEdge(*this), HalfEdge(*this) } {
     }
+    StructuralEdge(const StructuralEdge&) = delete;
+    StructuralEdge& operator=(const StructuralEdge&) = delete;
     HalfEdge halfEdges[2]; // par no ordenado, quizas crear una estructura de datos para encapsular y operar sobre ellos
     // Probablemente añada operadores sustractivos
     ~StructuralEdge() {

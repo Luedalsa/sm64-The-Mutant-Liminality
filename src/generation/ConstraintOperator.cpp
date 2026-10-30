@@ -21,12 +21,12 @@ void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
                  "un estado temporal y controlado."
               << std::endl;
 
-    auto *A = new StructuralEdge(*edge);
-    auto *B = new StructuralEdge(*A);
-    auto *C = new StructuralEdge(*A);
-    auto *D = new StructuralEdge(*A);
-    auto *E = new StructuralEdge(*A);
-    auto *F = new StructuralEdge(*A);
+    auto *A = new StructuralEdge();
+    auto *B = new StructuralEdge();
+    auto *C = new StructuralEdge();
+    auto *D = new StructuralEdge();
+    auto *E = new StructuralEdge();
+    auto *F = new StructuralEdge();
 
     itemCount.set(6);
 
@@ -102,9 +102,8 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
                  "un estado temporal y controlado."
               << std::endl;
 
-    auto newEdge =
-        new StructuralEdge(halfEdgeA.structuralEdge); // TODO leak, use pool but idc about leaks rn its
-                                                      // the least important thing here
+    auto newEdge = new StructuralEdge(); // TODO leak, use pool but idc about leaks rn its
+                                         // the least important thing here
 
     int ca = 0;
     int cb = 0;
@@ -138,7 +137,7 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
     // TODO if surfaces of both half edges are adjacent create an extra edge and extra surface to avoid
     // < 3 degree node.
 
-    auto newEdge2 = new StructuralEdge(halfEdgeB.structuralEdge);
+    auto newEdge2 = new StructuralEdge();
     outStructuralEdges.push_back(newEdge2);
 
     outNewSurface = new StructuralFace();

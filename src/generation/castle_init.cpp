@@ -71,7 +71,7 @@ s32 castle_init(s16 arg, s32 unused) {
     LevelScriptManager::setup();
 
 
-    auto* e = static_cast<StructuralEdge *>(malloc(sizeof(StructuralEdge)));
+    StructuralEdge* e;
     std::vector<StructuralEdge*> e2;
     StructuralFace* newSurfaceA;
 
