@@ -54,6 +54,41 @@ float HalfEdge::getAngleSeparation() const {
     HalfEdge* t = &getEvilTwin();
     do { t = &t->walk(); } while (t != &getEvilTwin());
     auto edgeFacesSeparation = t->structuralEdge.stableSeparation;
-    return -M_PI / 2.0f; // TODO: calcular separación angular entre dos medias aristas estructurales en 3D
+    return -std::numbers::pi / 2.0f; // TODO: calcular separación angular entre dos medias aristas estructurales en 3D
+}
+StructuralEdge::StructuralEdge() : halfEdges{ HalfEdge(*this), HalfEdge(*this) } {
+}
+bool StructuralEdge::isLinked() const {
+    return halfEdges[0].isLinked() && halfEdges[1].isLinked();
+}
+void StructuralEdge::constrain() {
+    assert(!normalSeparationConstraint.has_value() && !directionVerticesRelationSizeConstraint.has_value()
+        && "StructuralEdge constrain() called on a StructuralEdge that already has constraints.");
+    if (normalSeparationConstraint.has_value() || directionVerticesRelationSizeConstraint.has_value()) {
+        throw NonRecoverableContradictionException(
+            "StructuralEdge already has constraints and they can only be created once.");
+    }
+    // Los enlaces ya están completos: las superficies y la arista siguiente son accesibles.
+    normalSeparationConstraint.emplace(
+        DirectionAndSeparation(sphericalDirection[0], sphericalDirection[1], stableSeparation, 100),
+        SphericalDirection(halfEdges[0].getBoundaryLoop().getSurface().normal[0],
+                           halfEdges[0].getBoundaryLoop().getSurface().normal[1], 1),
+        SphericalDirection(halfEdges[1].getBoundaryLoop().getSurface().normal[0],
+                           halfEdges[1].getBoundaryLoop().getSurface().normal[1], 100));
+    directionVerticesRelationSizeConstraint.emplace(
+        SphericalCoordinates(sphericalDirection[0], sphericalDirection[1], stableSize, 100),
+        VVector3(displayVertex.position[0], displayVertex.position[1], displayVertex.position[2], 100),
+        VVector3(halfEdges[0].walk().structuralEdge.displayVertex.position[0], halfEdges[0].walk().structuralEdge.displayVertex.position[1], halfEdges[0].walk().structuralEdge.displayVertex.position[2], 100)); // TODO Revisar de donde sale el segundo vértice
+}
+StructuralEdge::~StructuralEdge() {
+    assert(false
+           && "StructuralEdge destructor called. This should not happen, as StructuralEdges are "
+              "managed by the system and should not be deleted manually.");
+}
+HalfEdge &StructuralEdge::getHalfEdge(int index) {
+    if (index < 0 || index > 1) {
+        throw std::out_of_range("HalfEdge index must be 0 or 1.");
+    }
+    return halfEdges[index];
 }
 std::queue<ARN> Ribosome::mitosisPlans;

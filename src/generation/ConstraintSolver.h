@@ -19,11 +19,21 @@ struct NormalSeparationConstraint : public Constraint {
         return ConstraintViolationSeverity::TotallyUnrepresentable;
     }
     const DirectionAndSeparation& edgeDirectionAndSeparation;
-    SphericalDirection& normalA;
-    SphericalDirection& normalB;
+    const SphericalDirection& normalA;
+    const SphericalDirection& normalB;
 
-    NormalSeparationConstraint(const DirectionAndSeparation& edgeDirectionAndSeparation, SphericalDirection& normalA, SphericalDirection& normalB)
-        : edgeDirectionAndSeparation(edgeDirectionAndSeparation), normalA(normalA), normalB(normalB) {}
+    NormalSeparationConstraint(const DirectionAndSeparation& edgeDirectionAndSeparation, const SphericalDirection& normalA, const SphericalDirection& normalB)
+        : edgeDirectionAndSeparation(edgeDirectionAndSeparation), normalA(normalA), normalB(normalB) {
+        for (const auto& scalar : edgeDirectionAndSeparation.scalars) {
+            reinterpret_cast<Scalar<float>*>(scalar)->addObserver(this); // TODO breakpoint
+        }
+        for (const auto& scalar : normalA.scalars) {
+            reinterpret_cast<Scalar<float>*>(scalar)->addObserver(this); // TODO breakpoint
+        }
+        for (const auto& scalar : normalB.scalars) {
+            reinterpret_cast<Scalar<float>*>(scalar)->addObserver(this); // TODO breakpoint
+        }
+    }
 
     float calculateConstraint() override {/*
         // Calculate the angular separation between normalA and normalB
@@ -59,12 +69,20 @@ struct DirectionVerticesRelationSizeConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::TotallyUnrepresentable;
     }
-    SphericalCoordinates& edgeDirection;
-    VVector3& edgeVertexA;
-    VVector3& edgeVertexB;
+    const SphericalCoordinates& edgeDirection;
+    const VVector3& edgeVertexA;
+    const VVector3& edgeVertexB;
 
-    DirectionVerticesRelationSizeConstraint(SphericalCoordinates& edgeDirection, VVector3& edgeVertexA, VVector3& edgeVertexB)
+    DirectionVerticesRelationSizeConstraint(const SphericalCoordinates& edgeDirection, const VVector3& edgeVertexA, const VVector3& edgeVertexB)
         : edgeDirection(edgeDirection), edgeVertexA(edgeVertexA), edgeVertexB(edgeVertexB) {}
+
+    float calculateConstraint() override {
+        return 0;
+    }
+
+    float getConstraintTension() override {
+        return 0;
+    }
 
     SolutionStatus solve() override {
         // direction lowest priority: calc line that intersects two vertices

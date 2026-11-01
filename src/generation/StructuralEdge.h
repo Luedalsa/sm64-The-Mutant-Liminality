@@ -10,9 +10,12 @@
 #include "ConstraintSolver.h"
 #include "Primitives.h"
 #include "NonRecoverableContradictionException.h"
+#include "StagedBatch.h"
 
 #include <cassert>
+#include <optional>
 #include <utility>
+#include <cmath>
 
 class StructuralFace;
 struct StructuralEdge;
@@ -33,8 +36,11 @@ private:
     // Must NEVER be null once the HalfEdge has been linked. It is the only link that can be
     // reassigned, because ConstraintOperator::cellWallGrow splices half edge rings.
     HalfEdge* nextEdge = nullptr;
+    // True once every link this HalfEdge needs is set. Queried by StagedBatch.
+    [[nodiscard]] bool isLinked() const { return boundaryLoop != nullptr && nextEdge != nullptr; }
     friend struct StructuralEdge;
     friend struct ConstraintOperator;
+    template <Stageable... Ts> friend class StagedBatch;
 public:
     //SemanticHalfEdge& semanticHalfEdge; // nuevo: Arista de fidelidad, se utiliza para medir tensión semántica entre dos superficies y para calcular la fidelidad (por fin la primera aparición de fidelidad en el proyecto)
     TriangleFaceType stableSurfaceType = TriangleFaceType::CheckerboardFloor;
@@ -55,33 +61,32 @@ public:
 struct StructuralEdge : Diagnosable {
 private:
     // No recibe otra StructuralEdge: todas sus propiedades se inicializan con valores por defecto o punteros nulos.
-    StructuralEdge() : halfEdges{ HalfEdge(*this), HalfEdge(*this) } {
-    }
-    StructuralEdge(const StructuralEdge&) = delete;
-    StructuralEdge& operator=(const StructuralEdge&) = delete;
+    StructuralEdge();
     HalfEdge halfEdges[2]; // par no ordenado, quizas crear una estructura de datos para encapsular y operar sobre ellos
     // Probablemente añada operadores sustractivos
-    ~StructuralEdge() {
-        assert(false && "StructuralEdge destructor called. This should not happen, as StructuralEdges are managed by the system and should not be deleted manually.");
-    };
+    ~StructuralEdge();
+    // Las constraints no existen hasta la etapa de restricciones (StructuralEdge::constrain), cuando los enlaces ya están completos.
+    // Son optional porque no son copiables ni movibles (se registran como observadores en su constructor).
+    std::optional<NormalSeparationConstraint> normalSeparationConstraint;
+    std::optional<DirectionVerticesRelationSizeConstraint> directionVerticesRelationSizeConstraint;
+
+    // True once both HalfEdges are fully linked. Queried by StagedBatch.
+    [[nodiscard]] bool isLinked() const;
+    // Creates the constraints exactly once, after every participant of the batch is linked. Called by StagedBatch.
+    void constrain();
 
     friend struct ConstraintOperator;
+    template <Stageable... Ts> friend class StagedBatch;
 public:
 
     // TODO: Los half edges son pares no ordenados, no se debería acceder arbitrariamente a un primero o segundo
-    HalfEdge& getHalfEdge(int index) {
-        if (index < 0 || index > 1) {
-            throw std::out_of_range("HalfEdge index must be 0 or 1.");
-        }
-        return halfEdges[index];
-    }
+    HalfEdge& getHalfEdge(int index);
     DisplayVertex displayVertex = DisplayVertex{{0, 0, 0}, 0, 0, 0, Vector3::zero()};
-    float stableSeparation = M_PI / 2.0f; // TODO: esto debería ser un Theta, pero por ahora lo dejo como float para simplificar la implementación inicial
+    Theta stableSeparation = std::numbers::pi / 2.0f;
     Length semanticTension = Length(0);
 
     Length stableSize = Length(1000);
-    Theta theta = Theta(0);
-    Theta phi = Theta(0);
+    Theta sphericalDirection[2] = {Theta(0), Theta(0)};
 };
 
 class BoundaryLoop {
@@ -98,7 +103,10 @@ class BoundaryLoop {
         surface = &s;
         edge = &e;
     }
+    // True once surface and edge are both set. Queried by StagedBatch.
+    [[nodiscard]] bool isLinked() const { return surface != nullptr && edge != nullptr; }
     friend struct ConstraintOperator;
+    template <Stageable... Ts> friend class StagedBatch;
 public:
     [[nodiscard]] StructuralFace& getSurface() const {
         assert(surface != nullptr && "BoundaryLoop has no associated surface.");

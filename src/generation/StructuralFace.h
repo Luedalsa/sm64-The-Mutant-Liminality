@@ -7,6 +7,7 @@
 
 #include "Dependent.h"
 #include "Diagnosable.h"
+#include "StagedBatch.h"
 #include "StructuralEdge.h"
 #include "TriangleTypes.h"
 #include "UVModes.h"
@@ -42,7 +43,10 @@ class StructuralFace {
     StructuralFace() = default;
     // Links outerLoop exactly once, after construction. Only ConstraintOperator can call it.
     void linkOuterLoop(BoundaryLoop& loop);
+    // True once every link this face needs is set. Queried by StagedBatch.
+    [[nodiscard]] bool isLinked() const { return outerLoop != nullptr; }
     friend struct ConstraintOperator;
+    template <Stageable... Ts> friend class StagedBatch;
 public:
     Theta normal[2] = {Theta(0.0f), Theta(0.0f)};
     ~StructuralFace();

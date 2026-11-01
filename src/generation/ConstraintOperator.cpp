@@ -3,6 +3,7 @@
 //
 
 #include "ConstraintOperator.h"
+#include "StagedBatch.h"
 
 bool ConstraintOperator::ranAbiogenesis = false;
 std::vector<StructuralEdge*> ConstraintOperator::cellBorders;
@@ -17,10 +18,13 @@ void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
 
     std::cout << "PELIGRO: aquí comienza un estado geométrico inválido, ningún hilo debe acceder a "
                  "esta memoria mientras se ejecuta la abiogénesis, ya que se están creando aristas "
-                 "estructurales sin propiedades definidas y se están violando las invariantes. Esto es "
-                 "un estado temporal y controlado."
+                 "estructurales sin enlazar ni restricciones. Esto es un estado temporal y controlado: "
+                 "termina cuando el lote completa sus etapas de enlace y restricciones."
               << std::endl;
 
+    StagedBatch<StructuralEdge, HalfEdge, BoundaryLoop, StructuralFace> batch;
+
+    // Etapa 1: Instancia. Los objetos nacen con propiedades por defecto, sin enlaces ni restricciones.
     auto *A = new StructuralEdge();
     auto *B = new StructuralEdge();
     auto *C = new StructuralEdge();
@@ -47,38 +51,56 @@ void ConstraintOperator::abiogenesis(StructuralEdge *&edge) {
     auto *lC = new BoundaryLoop();
     auto *lD = new BoundaryLoop();
 
-    // Every object is built unlinked; the links are established now, once, by this operator.
-    lA->link(*sA, A->halfEdges[0]);
-    lB->link(*sB, B->halfEdges[1]);
-    lC->link(*sC, C->halfEdges[1]);
-    lD->link(*sD, A->halfEdges[1]);
+    for (auto *e : {A, B, C, D, E, F}) {
+        batch.add(*e);
+        batch.add(e->halfEdges[0]);
+        batch.add(e->halfEdges[1]);
+    }
+    for (auto *s : {sA, sB, sC, sD}) {
+        batch.add(*s);
+    }
+    for (auto *l : {lA, lB, lC, lD}) {
+        batch.add(*l);
+    }
 
-    sA->linkOuterLoop(*lA);
-    sB->linkOuterLoop(*lB);
-    sC->linkOuterLoop(*lC);
-    sD->linkOuterLoop(*lD);
+    // Etapa 2: Enlace. Todos los enlaces mutuos se establecen aquí, una sola vez, y el lote
+    // comprueba que ningún participante quedó sin enlazar antes de permitir las restricciones.
+    batch.link([&] {
+        lA->link(*sA, A->halfEdges[0]);
+        lB->link(*sB, B->halfEdges[1]);
+        lC->link(*sC, C->halfEdges[1]);
+        lD->link(*sD, A->halfEdges[1]);
 
-    auto link = [](HalfEdge &h, HalfEdge &next, BoundaryLoop *loop) {
-        h.nextEdge = &next;
-        h.linkBoundaryLoop(*loop);
-    };
+        sA->linkOuterLoop(*lA);
+        sB->linkOuterLoop(*lB);
+        sC->linkOuterLoop(*lC);
+        sD->linkOuterLoop(*lD);
 
-    // Cara A: A0 → B0 → C0
-    link(A->halfEdges[0], B->halfEdges[0], lA);
-    link(B->halfEdges[0], C->halfEdges[0], lA);
-    link(C->halfEdges[0], A->halfEdges[0], lA);
-    // Cara B: B1 → E0 → D0
-    link(B->halfEdges[1], E->halfEdges[0], lB);
-    link(E->halfEdges[0], D->halfEdges[0], lB);
-    link(D->halfEdges[0], B->halfEdges[1], lB);
-    // Cara C: C1 → D1 → F0
-    link(C->halfEdges[1], D->halfEdges[1], lC);
-    link(D->halfEdges[1], F->halfEdges[0], lC);
-    link(F->halfEdges[0], C->halfEdges[1], lC);
-    // Cara D: A1 → F1 → E1
-    link(A->halfEdges[1], F->halfEdges[1], lD);
-    link(F->halfEdges[1], E->halfEdges[1], lD);
-    link(E->halfEdges[1], A->halfEdges[1], lD);
+        auto linkHalfEdge = [](HalfEdge &h, HalfEdge &next, BoundaryLoop *loop) {
+            h.nextEdge = &next;
+            h.linkBoundaryLoop(*loop);
+        };
+
+        // Cara A: A0 → B0 → C0
+        linkHalfEdge(A->halfEdges[0], B->halfEdges[0], lA);
+        linkHalfEdge(B->halfEdges[0], C->halfEdges[0], lA);
+        linkHalfEdge(C->halfEdges[0], A->halfEdges[0], lA);
+        // Cara B: B1 → E0 → D0
+        linkHalfEdge(B->halfEdges[1], E->halfEdges[0], lB);
+        linkHalfEdge(E->halfEdges[0], D->halfEdges[0], lB);
+        linkHalfEdge(D->halfEdges[0], B->halfEdges[1], lB);
+        // Cara C: C1 → D1 → F0
+        linkHalfEdge(C->halfEdges[1], D->halfEdges[1], lC);
+        linkHalfEdge(D->halfEdges[1], F->halfEdges[0], lC);
+        linkHalfEdge(F->halfEdges[0], C->halfEdges[1], lC);
+        // Cara D: A1 → F1 → E1
+        linkHalfEdge(A->halfEdges[1], F->halfEdges[1], lD);
+        linkHalfEdge(F->halfEdges[1], E->halfEdges[1], lD);
+        linkHalfEdge(E->halfEdges[1], A->halfEdges[1], lD);
+    });
+
+    // Etapa 3: Restricciones. Con los enlaces completos, las aristas crean sus constraints.
+    batch.constrain();
 
     std::cout
         << "Fin de la abiogénesis, se han creado 6 aristas estructurales y 4 superficies estructurales."
@@ -98,12 +120,28 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
 
     std::cout << "PELIGRO: aquí comienza un estado geométrico inválido, ningún hilo debe acceder a "
                  "esta memoria mientras se ejecuta la mitosis, ya que se están creando aristas "
-                 "estructurales sin propiedades definidas y se están violando las invariantes. Esto es "
-                 "un estado temporal y controlado."
+                 "estructurales sin enlazar ni restricciones y se están reempalmando anillos de "
+                 "medias aristas. Esto es un estado temporal y controlado: termina cuando el lote "
+                 "completa sus etapas de enlace y restricciones."
               << std::endl;
 
+    // Solo los objetos nuevos entran en el lote; los HalfEdge existentes ya estaban enlazados.
+    StagedBatch<StructuralEdge, HalfEdge, BoundaryLoop, StructuralFace> batch;
+
+    // Etapa 1: Instancia.
     auto newEdge = new StructuralEdge(); // TODO leak, use pool but idc about leaks rn its
                                          // the least important thing here
+    auto newEdge2 = new StructuralEdge();
+    outNewSurface = new StructuralFace();
+    auto *newLoop = new BoundaryLoop();
+
+    for (auto *e : {newEdge, newEdge2}) {
+        batch.add(*e);
+        batch.add(e->halfEdges[0]);
+        batch.add(e->halfEdges[1]);
+    }
+    batch.add(*outNewSurface);
+    batch.add(*newLoop);
 
     int ca = 0;
     int cb = 0;
@@ -122,36 +160,37 @@ void ConstraintOperator::cellWallGrow(HalfEdge &halfEdgeA, HalfEdge &halfEdgeB,
 
     // TODO here goes the assert to check if both half edges share vertex
 
-    HalfEdge *originalNext = halfEdgeA.nextEdge;
-    halfEdgeA.nextEdge = &newEdge->halfEdges[0];
-    newEdge->halfEdges[0].nextEdge = originalNext;
-    newEdge->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
+    // Etapa 2: Enlace.
+    batch.link([&] {
+        HalfEdge *originalNext = halfEdgeA.nextEdge;
+        halfEdgeA.nextEdge = &newEdge->halfEdges[0];
+        newEdge->halfEdges[0].nextEdge = originalNext;
+        newEdge->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
 
-    originalNext = halfEdgeB.nextEdge;
-    halfEdgeB.nextEdge = &newEdge->halfEdges[1];
-    newEdge->halfEdges[1].nextEdge = originalNext;
-    newEdge->halfEdges[1].linkBoundaryLoop(halfEdgeB.getBoundaryLoop());
+        originalNext = halfEdgeB.nextEdge;
+        halfEdgeB.nextEdge = &newEdge->halfEdges[1];
+        newEdge->halfEdges[1].nextEdge = originalNext;
+        newEdge->halfEdges[1].linkBoundaryLoop(halfEdgeB.getBoundaryLoop());
+
+        // TODO if surfaces of both half edges are adjacent create an extra edge and extra surface to avoid
+        // < 3 degree node.
+
+        originalNext = halfEdgeA.nextEdge;
+        halfEdgeA.nextEdge = &newEdge2->halfEdges[0];
+        newEdge2->halfEdges[0].nextEdge = originalNext->nextEdge->nextEdge;
+        originalNext->nextEdge->nextEdge = &newEdge2->halfEdges[1];
+        newEdge2->halfEdges[1].nextEdge = originalNext;
+        newEdge2->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
+        newLoop->link(*outNewSurface, newEdge2->halfEdges[1]);
+        outNewSurface->linkOuterLoop(*newLoop);
+        newEdge2->halfEdges[1].linkBoundaryLoop(*newLoop);
+    });
 
     outStructuralEdges.push_back(newEdge);
-
-    // TODO if surfaces of both half edges are adjacent create an extra edge and extra surface to avoid
-    // < 3 degree node.
-
-    auto newEdge2 = new StructuralEdge();
     outStructuralEdges.push_back(newEdge2);
 
-    outNewSurface = new StructuralFace();
-    auto *newLoop = new BoundaryLoop();
-
-    originalNext = halfEdgeA.nextEdge;
-    halfEdgeA.nextEdge = &newEdge2->halfEdges[0];
-    newEdge2->halfEdges[0].nextEdge = originalNext->nextEdge->nextEdge;
-    originalNext->nextEdge->nextEdge = &newEdge2->halfEdges[1];
-    newEdge2->halfEdges[1].nextEdge = originalNext;
-    newEdge2->halfEdges[0].linkBoundaryLoop(halfEdgeA.getBoundaryLoop());
-    newLoop->link(*outNewSurface, newEdge2->halfEdges[1]);
-    outNewSurface->linkOuterLoop(*newLoop);
-    newEdge2->halfEdges[1].linkBoundaryLoop(*newLoop);
+    // Etapa 3: Restricciones.
+    batch.constrain();
 
     std::cout << "Fin de la mitosis, se han creado 2 aristas estructurales y 1 superficie estructural."
               << std::endl;
