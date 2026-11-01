@@ -18,9 +18,9 @@ struct NormalSeparationConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::TotallyUnrepresentable;
     }
-    const DirectionAndSeparation& edgeDirectionAndSeparation;
-    const SphericalDirection& normalA;
-    const SphericalDirection& normalB;
+    const DirectionAndSeparation edgeDirectionAndSeparation;
+    const SphericalDirection normalA;
+    const SphericalDirection normalB;
 
     NormalSeparationConstraint(const DirectionAndSeparation& edgeDirectionAndSeparation, const SphericalDirection& normalA, const SphericalDirection& normalB)
         : edgeDirectionAndSeparation(edgeDirectionAndSeparation), normalA(normalA), normalB(normalB) {
@@ -69,9 +69,9 @@ struct DirectionVerticesRelationSizeConstraint : public Constraint {
     const ConstraintViolationSeverity getSeverity() const override {
         return ConstraintViolationSeverity::TotallyUnrepresentable;
     }
-    const SphericalCoordinates& edgeDirection;
-    const VVector3& edgeVertexA;
-    const VVector3& edgeVertexB;
+    const SphericalCoordinates edgeDirection;
+    const VVector3 edgeVertexA;
+    const VVector3 edgeVertexB;
 
     DirectionVerticesRelationSizeConstraint(const SphericalCoordinates& edgeDirection, const VVector3& edgeVertexA, const VVector3& edgeVertexB)
         : edgeDirection(edgeDirection), edgeVertexA(edgeVertexA), edgeVertexB(edgeVertexB) {}
